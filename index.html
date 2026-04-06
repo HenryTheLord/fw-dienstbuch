@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>FW Tittmoning — Dienstbuch Abgleich</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -10,36 +10,41 @@
 
     .header {
       background: #cc0000; color: white;
-      padding: 16px 24px; display: flex; align-items: center; gap: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100;
     }
-    .header h1 { font-size: 1.2rem; }
+    .header h1 { font-size: 1.1rem; flex: 1; }
 
-    .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+    .container { max-width: 700px; margin: 24px auto; padding: 0 14px; }
 
     .card {
-      background: white; border-radius: 12px; padding: 24px;
-      margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      background: white; border-radius: 12px; padding: 20px;
+      margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .card h2 { margin-bottom: 16px; color: #cc0000; font-size: 1.1rem; }
+    .card h2 { margin-bottom: 14px; color: #cc0000; font-size: 1.05rem; }
 
-    input[type="password"] {
-      width: 100%; padding: 10px 14px; border: 1px solid #ddd;
+    input[type="password"], select {
+      width: 100%; padding: 12px 14px; border: 1px solid #ddd;
       border-radius: 8px; font-size: 1rem; margin-bottom: 12px;
+      background: white;
     }
 
-    button {
+    .btn {
       background: #cc0000; color: white; border: none;
-      padding: 10px 24px; border-radius: 8px; font-size: 1rem;
-      cursor: pointer; width: 100%;
+      padding: 12px 24px; border-radius: 8px; font-size: 1rem;
+      cursor: pointer; width: 100%; margin-bottom: 8px;
     }
-    button:hover { background: #aa0000; }
-    button:disabled { background: #ccc; cursor: not-allowed; }
+    .btn:hover { background: #aa0000; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .btn.grau { background: #666; }
+    .btn.grau:hover { background: #444; }
+    .btn.gruen { background: #2a7a2a; }
+    .btn.gruen:hover { background: #1a5a1a; }
 
-    .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
     .tab {
-      padding: 10px 20px; border-radius: 8px; cursor: pointer;
-      background: white; border: 2px solid #ddd; font-size: 0.95rem;
+      padding: 9px 16px; border-radius: 8px; cursor: pointer;
+      background: white; border: 2px solid #ddd; font-size: 0.9rem;
     }
     .tab.active { background: #cc0000; color: white; border-color: #cc0000; }
 
@@ -47,23 +52,29 @@
     .tab-content.active { display: block; }
 
     .status {
-      padding: 12px; border-radius: 8px; margin-top: 12px;
+      padding: 12px; border-radius: 8px; margin-top: 10px;
       font-size: 0.9rem; display: none;
     }
     .status.info { background: #e8f4fd; color: #1a6fa8; display: block; }
     .status.success { background: #e8f8e8; color: #2a7a2a; display: block; }
     .status.error { background: #fde8e8; color: #a81a1a; display: block; }
+    .status.warn { background: #fff8e1; color: #856404; display: block; }
 
     .upload-area {
-      border: 2px dashed #ddd; border-radius: 12px; padding: 32px;
-      text-align: center; cursor: pointer; margin-bottom: 12px; transition: border-color 0.2s;
+      border: 2px dashed #ddd; border-radius: 12px; padding: 28px;
+      text-align: center; cursor: pointer; margin-bottom: 10px;
+      transition: border-color 0.2s;
     }
     .upload-area:hover { border-color: #cc0000; }
-    .upload-area p { color: #888; margin-top: 8px; font-size: 0.9rem; }
+    .upload-area p { color: #888; margin-top: 6px; font-size: 0.88rem; }
+
+    .kamera-bereich {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
+    }
 
     .foto-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 8px; margin-bottom: 12px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px; margin-bottom: 10px;
     }
     .foto-item {
       position: relative; border-radius: 8px; overflow: hidden;
@@ -72,110 +83,155 @@
     .foto-item img { width: 100%; height: 100%; object-fit: cover; }
     .foto-item .foto-status {
       position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 4px 6px; font-size: 0.7rem; text-align: center;
+      padding: 3px 5px; font-size: 0.65rem; text-align: center;
       background: rgba(0,0,0,0.6); color: white;
     }
     .foto-item .foto-status.ok { background: rgba(42,122,42,0.85); }
     .foto-item .foto-status.fehler { background: rgba(168,26,26,0.85); }
     .foto-item .foto-status.laden { background: rgba(26,111,168,0.85); }
 
+    .person-box {
+      background: #f8f8f8; border-radius: 10px; padding: 14px;
+      margin-bottom: 14px; border-left: 4px solid #cc0000;
+    }
+    .person-box strong { font-size: 1rem; }
+    .person-box small { color: #888; font-size: 0.85rem; display: block; margin-top: 2px; }
+
     .differenz-item {
-      border: 1px solid #eee; border-radius: 8px; padding: 12px 16px;
-      margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+      border: 1px solid #eee; border-radius: 8px; padding: 10px 14px;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
     }
     .differenz-item.nur_dienstbuch { border-left: 4px solid #f0a500; }
     .differenz-item.nur_mpfeuer { border-left: 4px solid #cc0000; }
 
-    .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
+    .badge { font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
     .badge.orange { background: #fff3cd; color: #856404; }
     .badge.unsicher { background: #f0f0f0; color: #666; }
 
     .differenz-info { flex: 1; }
-    .differenz-info strong { display: block; font-size: 0.95rem; }
-    .differenz-info small { color: #888; font-size: 0.82rem; }
+    .differenz-info strong { display: block; font-size: 0.92rem; }
+    .differenz-info small { color: #888; font-size: 0.8rem; }
 
-    #login-section { max-width: 400px; margin: 80px auto; }
+    #login-section { max-width: 380px; margin: 60px auto; padding: 0 14px; }
     #app-section { display: none; }
 
-    .excel-badge {
-      display: inline-block; background: #e8f8e8; color: #2a7a2a;
-      border-radius: 8px; padding: 6px 12px; font-size: 0.85rem; margin-bottom: 12px;
-    }
-    .excel-badge.fehlt { background: #fde8e8; color: #a81a1a; }
+    .stats { display: flex; gap: 10px; margin-bottom: 14px; }
+    .stat-box { flex: 1; background: #f8f8f8; border-radius: 8px; padding: 10px; text-align: center; }
+    .stat-box .zahl { font-size: 1.6rem; font-weight: bold; color: #cc0000; }
+    .stat-box .label { font-size: 0.75rem; color: #888; }
 
-    .stats { display: flex; gap: 12px; margin-bottom: 16px; }
-    .stat-box { flex: 1; background: #f8f8f8; border-radius: 8px; padding: 12px; text-align: center; }
-    .stat-box .zahl { font-size: 1.8rem; font-weight: bold; color: #cc0000; }
-    .stat-box .label { font-size: 0.8rem; color: #888; }
-
-    .fortschritt { background: #f0f0f0; border-radius: 8px; height: 8px; margin: 8px 0; overflow: hidden; }
+    .fortschritt { background: #f0f0f0; border-radius: 8px; height: 6px; margin: 8px 0; overflow: hidden; }
     .fortschritt-bar { height: 100%; background: #cc0000; border-radius: 8px; transition: width 0.3s; }
 
     .spinner {
-      display: inline-block; width: 16px; height: 16px;
+      display: inline-block; width: 15px; height: 15px;
       border: 2px solid #ffffff40; border-top-color: white;
       border-radius: 50%; animation: spin 0.8s linear infinite;
-      margin-right: 8px; vertical-align: middle;
+      margin-right: 6px; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .ergebnis-section { margin-top: 16px; border-top: 1px solid #eee; padding-top: 16px; }
-    .ergebnis-section h3 { font-size: 0.95rem; color: #555; margin-bottom: 8px; }
+    .ergebnis-section { margin-top: 14px; border-top: 1px solid #eee; padding-top: 14px; }
+    .ergebnis-section h3 { font-size: 0.9rem; color: #555; margin-bottom: 8px; }
+
+    .ocr-vorschau {
+      background: #f8f8f8; border-radius: 8px; padding: 12px;
+      margin: 10px 0; font-size: 0.82rem; color: #555;
+      border-left: 3px solid #1a6fa8;
+    }
+    .ocr-vorschau strong { color: #333; display: block; margin-bottom: 4px; }
+
+    .excel-info {
+      background: #e8f8e8; border-radius: 8px; padding: 10px 14px;
+      margin-bottom: 14px; font-size: 0.88rem; color: #2a7a2a;
+      display: none;
+    }
+    .excel-info.sichtbar { display: block; }
+
+    @media (max-width: 480px) {
+      .kamera-bereich { grid-template-columns: 1fr; }
+      .tabs .tab { font-size: 0.82rem; padding: 8px 12px; }
+    }
   </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="login-section">
   <div class="card">
-    <div style="text-align:center; margin-bottom: 24px;">
-      <div style="font-size: 3rem;">🚒</div>
-      <h1 style="color:#cc0000; margin-top: 8px;">FW Tittmoning</h1>
-      <p style="color:#888; font-size: 0.9rem; margin-top: 4px;">Dienstbuch Abgleich</p>
+    <div style="text-align:center; margin-bottom: 20px;">
+      <div style="font-size: 2.5rem;">🚒</div>
+      <h1 style="color:#cc0000; margin-top: 6px; font-size: 1.3rem;">FW Tittmoning</h1>
+      <p style="color:#888; font-size: 0.88rem; margin-top: 4px;">Dienstbuch Abgleich</p>
     </div>
     <input type="password" id="passwort" placeholder="Passwort eingeben" />
-    <button onclick="login()">Anmelden</button>
+    <button class="btn" onclick="login()">Anmelden</button>
     <div id="login-status" class="status"></div>
   </div>
 </div>
 
+<!-- APP -->
 <div id="app-section">
   <div class="header">
-    <span style="font-size:1.8rem;">🚒</span>
-    <h1>FW Tittmoning — Dienstbuch Abgleich</h1>
-    <button onclick="logout()" style="width:auto; margin-left:auto; background: rgba(255,255,255,0.2); padding: 6px 16px;">Abmelden</button>
+    <span style="font-size:1.5rem;">🚒</span>
+    <h1>FW Tittmoning</h1>
+    <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Abmelden</button>
   </div>
 
   <div class="container">
     <div class="tabs">
-      <div class="tab active" onclick="showTab('ocr', this)">📷 Fotos hochladen</div>
-      <div class="tab" onclick="showTab('excel', this)">📊 Excel importieren</div>
+      <div class="tab active" onclick="showTab('scan', this)">📷 Scannen</div>
+      <div class="tab" onclick="showTab('excel', this)">📊 Excel</div>
       <div class="tab" onclick="showTab('korrekturen', this)">📋 Korrekturen</div>
     </div>
 
-    <!-- TAB: OCR -->
-    <div id="tab-ocr" class="tab-content active">
+    <!-- TAB: SCANNEN -->
+    <div id="tab-scan" class="tab-content active">
+
+      <!-- Excel Status -->
+      <div id="excel-info" class="excel-info">✅ Excel geladen — <span id="excel-info-text"></span></div>
+
+      <!-- Person auswählen -->
       <div class="card">
-        <h2>📷 Dienstbuchseiten scannen</h2>
-
-        <div id="excel-hinweis" class="excel-badge fehlt">⚠️ Bitte zuerst Excel importieren</div>
-
-        <div class="upload-area" onclick="document.getElementById('foto-input').click()">
-          <div style="font-size: 2rem;">📸</div>
-          <p><strong>Mehrere Fotos auf einmal möglich!</strong></p>
-          <p>JPG, PNG — klicken oder Fotos hierher ziehen</p>
+        <h2>👤 Person auswählen</h2>
+        <select id="person-select" onchange="personGewaehlt()">
+          <option value="">— Bitte Person wählen —</option>
+        </select>
+        <div id="person-box" style="display:none" class="person-box">
+          <strong id="person-name"></strong>
+          <small id="person-info"></small>
         </div>
-        <input type="file" id="foto-input" accept="image/*" multiple style="display:none" onchange="fotosGewaehlt(this)">
+      </div>
+
+      <!-- Fotos -->
+      <div class="card">
+        <h2>📷 Dienstbuchseiten fotografieren</h2>
+        <div class="kamera-bereich">
+          <button class="btn" onclick="document.getElementById('kamera-input').click()">
+            📸 Foto aufnehmen
+          </button>
+          <button class="btn grau" onclick="document.getElementById('datei-input').click()">
+            🖼️ Datei wählen
+          </button>
+        </div>
+        <!-- Kamera (iPhone öffnet direkt Kamera) -->
+        <input type="file" id="kamera-input" accept="image/*" capture="environment" multiple style="display:none" onchange="fotosGewaehlt(this)">
+        <!-- Datei-Upload -->
+        <input type="file" id="datei-input" accept="image/*" multiple style="display:none" onchange="fotosGewaehlt(this)">
 
         <div id="foto-grid" class="foto-grid" style="display:none"></div>
 
         <div id="fortschritt-container" style="display:none">
           <div class="fortschritt"><div class="fortschritt-bar" id="fortschritt-bar" style="width:0%"></div></div>
-          <p style="font-size:0.85rem; color:#888; text-align:center;" id="fortschritt-text"></p>
+          <p style="font-size:0.82rem; color:#888; text-align:center; margin-top:4px;" id="fortschritt-text"></p>
         </div>
 
-        <button id="scan-btn" onclick="allesScannen()" disabled>Alle Seiten scannen & abgleichen</button>
+        <button class="btn gruen" id="scan-btn" onclick="allesScannen()" disabled style="margin-top:8px;">
+          🔍 Alle Seiten scannen & abgleichen
+        </button>
         <div id="ocr-status" class="status"></div>
       </div>
+
       <div id="ergebnisse-container"></div>
     </div>
 
@@ -183,13 +239,15 @@
     <div id="tab-excel" class="tab-content">
       <div class="card">
         <h2>📊 MP-Feuer Excel importieren</h2>
-        <p style="color:#888; font-size:0.9rem; margin-bottom:16px;">Lade hier den aktuellen MP-Feuer Export hoch.</p>
+        <p style="color:#888; font-size:0.88rem; margin-bottom:14px;">
+          Die Datei wird dauerhaft auf dem Server gespeichert — du musst sie nur neu hochladen wenn es eine neue Version gibt.
+        </p>
         <div class="upload-area" onclick="document.getElementById('excel-input').click()">
-          <div style="font-size: 2rem;">📂</div>
+          <div style="font-size: 1.8rem;">📂</div>
           <p>Excel-Datei auswählen (.xlsx)</p>
         </div>
         <input type="file" id="excel-input" accept=".xlsx" style="display:none" onchange="excelGewaehlt(this)">
-        <button id="excel-btn" onclick="excelImportieren()" disabled>Excel importieren</button>
+        <button class="btn" id="excel-btn" onclick="excelImportieren()" disabled>Excel importieren & speichern</button>
         <div id="excel-status" class="status"></div>
       </div>
     </div>
@@ -197,10 +255,10 @@
     <!-- TAB: KORREKTUREN -->
     <div id="tab-korrekturen" class="tab-content">
       <div class="card">
-        <h2>📋 Alle offenen Korrekturen</h2>
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <button onclick="korrektorenLaden('offen')" style="flex:1">Offene anzeigen</button>
-          <button onclick="korrektorenLaden('alle')" style="flex:1; background:#666;">Alle anzeigen</button>
+        <h2>📋 Korrekturen</h2>
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+          <button class="btn" onclick="korrektorenLaden('offen')" style="flex:1">Offene</button>
+          <button class="btn grau" onclick="korrektorenLaden('alle')" style="flex:1">Alle</button>
         </div>
         <div id="korrekturen-liste"></div>
         <div id="korrekturen-status" class="status"></div>
@@ -213,11 +271,14 @@
   const SERVER = "https://178.104.30.135.nip.io";
   let token = localStorage.getItem('fw_token') || '';
   let fotoListe = [];
-  let excelDaten = null; // Wird im Speicher gehalten
+  let excelDaten = null;
+  let gewaehltePerson = null;
+  let personenListe = [];
 
   if (token) {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('app-section').style.display = 'block';
+    ladePersonen();
   }
 
   async function login() {
@@ -237,13 +298,14 @@
         localStorage.setItem('fw_token', token);
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('app-section').style.display = 'block';
+        ladePersonen();
       } else {
         status.className = 'status error';
         status.textContent = '❌ Falsches Passwort';
       }
     } catch(e) {
       status.className = 'status error';
-      status.textContent = '❌ Server nicht erreichbar: ' + e.message;
+      status.textContent = '❌ Server nicht erreichbar';
     }
   }
 
@@ -256,52 +318,91 @@
     el.classList.add('active');
   }
 
-  function aktualisiereExcelHinweis() {
-    const hinweis = document.getElementById('excel-hinweis');
-    if (excelDaten) {
-      hinweis.className = 'excel-badge';
-      hinweis.textContent = `✅ Excel geladen: ${excelDaten.personal?.length || 0} Personen`;
-    } else {
-      hinweis.className = 'excel-badge fehlt';
-      hinweis.textContent = '⚠️ Bitte zuerst Excel importieren';
+  async function ladePersonen() {
+    try {
+      const res = await fetch(`${SERVER}/webhook/personen`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.erfolg && data.personen) {
+        personenListe = data.personen;
+        const select = document.getElementById('person-select');
+        select.innerHTML = '<option value="">— Bitte Person wählen —</option>';
+        data.personen.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.persNr;
+          opt.textContent = `${p.nachname} ${p.vorname} (${p.dienstgrad})`;
+          opt.dataset.person = JSON.stringify(p);
+          select.appendChild(opt);
+        });
+
+        // Excel-Info anzeigen
+        const info = document.getElementById('excel-info');
+        info.className = 'excel-info sichtbar';
+        document.getElementById('excel-info-text').textContent = `${data.personen.length} Personen verfügbar`;
+      }
+    } catch(e) {
+      // Excel noch nicht importiert
+      document.getElementById('excel-info').style.display = 'none';
     }
+  }
+
+  function personGewaehlt() {
+    const select = document.getElementById('person-select');
+    const opt = select.options[select.selectedIndex];
+    if (!opt.dataset.person) {
+      gewaehltePerson = null;
+      document.getElementById('person-box').style.display = 'none';
+      return;
+    }
+    gewaehltePerson = JSON.parse(opt.dataset.person);
+    document.getElementById('person-name').textContent = `${gewaehltePerson.nachname} ${gewaehltePerson.vorname}`;
+    document.getElementById('person-info').textContent = `${gewaehltePerson.dienstgrad} · Pers-Nr: ${gewaehltePerson.persNr} · Einheit: ${gewaehltePerson.einheit || ''}`;
+    document.getElementById('person-box').style.display = 'block';
+    aktualisiereStartBtn();
+  }
+
+  function aktualisiereStartBtn() {
+    const btn = document.getElementById('scan-btn');
+    btn.disabled = !(gewaehltePerson && fotoListe.length > 0);
   }
 
   function fotosGewaehlt(input) {
     const files = Array.from(input.files);
     if (!files.length) return;
-    fotoListe = [];
+
     const grid = document.getElementById('foto-grid');
     grid.style.display = 'grid';
-    grid.innerHTML = '';
-    let geladen = 0;
+
     files.forEach((file, i) => {
+      const idx = fotoListe.length;
       const item = document.createElement('div');
       item.className = 'foto-item';
-      item.id = `foto-${i}`;
+      item.id = `foto-${idx}`;
       item.innerHTML = `<img src="" /><div class="foto-status">Lädt...</div>`;
       grid.appendChild(item);
+
       const reader = new FileReader();
       reader.onload = e => {
         const base64 = e.target.result.split(',')[1];
-        fotoListe.push({ index: i, base64, name: file.name });
+        fotoListe.push({ index: idx, base64, name: file.name });
         item.querySelector('img').src = e.target.result;
         item.querySelector('.foto-status').textContent = 'Bereit';
-        geladen++;
-        if (geladen === files.length) {
-          document.getElementById('scan-btn').disabled = false;
-          document.getElementById('ocr-status').className = 'status success';
-          document.getElementById('ocr-status').textContent = `✅ ${geladen} Foto(s) bereit`;
-        }
+        aktualisiereStartBtn();
+        document.getElementById('ocr-status').className = 'status success';
+        document.getElementById('ocr-status').textContent = `✅ ${fotoListe.length} Foto(s) bereit`;
       };
       reader.readAsDataURL(file);
     });
+
+    // Input zurücksetzen damit man nochmal Fotos hinzufügen kann
+    input.value = '';
   }
 
   async function allesScannen() {
-    if (!excelDaten) {
+    if (!gewaehltePerson) {
       document.getElementById('ocr-status').className = 'status error';
-      document.getElementById('ocr-status').textContent = '❌ Bitte zuerst Excel importieren!';
+      document.getElementById('ocr-status').textContent = '❌ Bitte zuerst Person auswählen!';
       return;
     }
 
@@ -321,18 +422,15 @@
     for (let i = 0; i < fotoListe.length; i++) {
       const foto = fotoListe[i];
       bar.style.width = Math.round((i / fotoListe.length) * 100) + '%';
-      fortschrittText.textContent = `Foto ${i+1} von ${fotoListe.length}: ${foto.name}`;
+      fortschrittText.textContent = `Foto ${i+1} von ${fotoListe.length}`;
 
       const fotoEl = document.getElementById(`foto-${foto.index}`);
-      if (fotoEl) {
-        fotoEl.querySelector('.foto-status').className = 'foto-status laden';
-        fotoEl.querySelector('.foto-status').textContent = 'Scannt...';
-      }
+      if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status laden'; fotoEl.querySelector('.foto-status').textContent = 'Scannt...'; }
       status.className = 'status info';
       status.textContent = `📷 Scanne Foto ${i+1} von ${fotoListe.length}...`;
 
       try {
-        // Schritt 1: OCR
+        // OCR
         const ocrRes = await fetch(`${SERVER}/webhook/ocr`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -341,31 +439,25 @@
         const ocrData = await ocrRes.json();
         if (!ocrData.erfolg) throw new Error(ocrData.fehler || 'OCR fehlgeschlagen');
 
-        // Schritt 2: Abgleich — Excel-Daten werden mitgeschickt!
+        // Abgleich — Person wird direkt mitgeschickt (kein OCR-Name nötig)
         const abgleichRes = await fetch(`${SERVER}/webhook/abgleich`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             ocr_daten: ocrData.daten,
-            mpfeuer_daten: excelDaten  // <-- direkt mitschicken
+            person_override: gewaehltePerson  // <-- gewählte Person überschreibt OCR-Name
           })
         });
         const abgleich = await abgleichRes.json();
         if (!abgleich.erfolg) throw new Error(abgleich.fehler || abgleich.nachricht);
 
-        if (fotoEl) {
-          fotoEl.querySelector('.foto-status').className = 'foto-status ok';
-          fotoEl.querySelector('.foto-status').textContent = `✓ ${abgleich.differenzen_anzahl || 0} Diff.`;
-        }
-        zeigeErgebnis(container, foto.name, abgleich);
+        if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status ok'; fotoEl.querySelector('.foto-status').textContent = `✓ ${abgleich.differenzen_anzahl || 0} Diff.`; }
+        zeigeErgebnis(container, foto.name, abgleich, ocrData.daten);
         erfolgreich++;
 
       } catch(e) {
         fehler++;
-        if (fotoEl) {
-          fotoEl.querySelector('.foto-status').className = 'foto-status fehler';
-          fotoEl.querySelector('.foto-status').textContent = 'Fehler';
-        }
+        if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status fehler'; fotoEl.querySelector('.foto-status').textContent = 'Fehler'; }
         const errDiv = document.createElement('div');
         errDiv.className = 'card';
         errDiv.innerHTML = `<h2 style="color:#cc0000;">❌ ${foto.name}</h2><p style="color:#888; margin-top:8px;">${e.message}</p>`;
@@ -378,14 +470,14 @@
     status.className = erfolgreich > 0 ? 'status success' : 'status error';
     status.textContent = `✅ ${erfolgreich} Seite(n) gescannt${fehler > 0 ? ` · ❌ ${fehler} Fehler` : ''}`;
     btn.disabled = false;
-    btn.textContent = 'Nochmal scannen';
+    btn.innerHTML = '🔍 Nochmal scannen';
   }
 
-  function zeigeErgebnis(container, name, abgleich) {
+  function zeigeErgebnis(container, name, abgleich, ocr) {
     const div = document.createElement('div');
     div.className = 'card';
-    const person = abgleich.person;
     const diffs = abgleich.differenzen || [];
+
     const diffHTML = diffs.length === 0
       ? '<p style="color:#2a7a2a; padding:8px;">✅ Keine Abweichungen gefunden</p>'
       : diffs.map(d => `
@@ -398,14 +490,17 @@
             ${d.unsicher ? '<span class="badge unsicher">⚠️ unsicher</span>' : ''}
           </div>`).join('');
 
+    // OCR Vorschau
+    const ocrVorschau = ocr?.eintraege?.length > 0
+      ? `<div class="ocr-vorschau">
+           <strong>OCR erkannt (${ocr.seitentyp || 'Unbekannt'}):</strong>
+           ${ocr.eintraege.map(e => `${e.bezeichnung || e.typ}${e.datum_von ? ' · ' + e.datum_von : ''}${e.unsicher ? ' ⚠️' : ''}`).join('<br>')}
+         </div>`
+      : `<div class="ocr-vorschau"><strong>OCR:</strong> Keine Einträge erkannt auf dieser Seite</div>`;
+
     div.innerHTML = `
       <h2>📄 ${name}</h2>
-      ${person
-        ? `<div style="background:#f8f8f8; border-radius:8px; padding:10px 14px; margin-bottom:12px;">
-             <strong>${person.vorname||''} ${person.nachname||''}</strong>
-             <span style="color:#888; margin-left:8px; font-size:0.9rem;">${person.dienstgrad||''} · Pers-Nr: ${person.pers_nr||''}</span>
-           </div>`
-        : `<p style="color:#888; margin-bottom:12px;">${abgleich.nachricht || 'Person nicht erkannt'}</p>`}
+      ${ocrVorschau}
       <div class="stats">
         <div class="stat-box"><div class="zahl">${abgleich.gesamt_eintraege_dienstbuch||0}</div><div class="label">Einträge erkannt</div></div>
         <div class="stat-box"><div class="zahl">${abgleich.differenzen_anzahl||0}</div><div class="label">Abweichungen</div></div>
@@ -431,8 +526,7 @@
       document.getElementById('excel-btn').disabled = false;
       document.getElementById('excel-status').className = 'status success';
       document.getElementById('excel-status').textContent =
-        `✅ Datei gelesen: ${excelDaten.personal.length} Personen, ${excelDaten.lehrgaenge.length} Lehrgänge, ${excelDaten.leistungspruefungen.length} Leistungsprüfungen`;
-      aktualisiereExcelHinweis();
+        `✅ Datei gelesen: ${excelDaten.personal.length} Personen`;
     };
     reader.readAsArrayBuffer(file);
   }
@@ -440,7 +534,7 @@
   async function excelImportieren() {
     const status = document.getElementById('excel-status');
     status.className = 'status info';
-    status.textContent = 'Wird hochgeladen...';
+    status.textContent = 'Wird auf Server gespeichert...';
     try {
       const res = await fetch(`${SERVER}/webhook/excel-import`, {
         method: 'POST',
@@ -450,8 +544,8 @@
       const data = await res.json();
       if (data.erfolg) {
         status.className = 'status success';
-        status.textContent = `✅ Excel importiert: ${data.personen} Personen, ${data.lehrgaenge} Lehrgänge, ${data.lp} Leistungsprüfungen`;
-        aktualisiereExcelHinweis();
+        status.textContent = `✅ Dauerhaft gespeichert: ${data.personen} Personen, ${data.lehrgaenge} Lehrgänge, ${data.lp} Leistungsprüfungen`;
+        ladePersonen();
       } else { throw new Error(data.fehler); }
     } catch(e) {
       status.className = 'status error';

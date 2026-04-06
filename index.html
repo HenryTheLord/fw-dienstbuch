@@ -7,7 +7,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
-    
+
     .header {
       background: #cc0000;
       color: white;
@@ -114,8 +114,8 @@
     .differenz-info strong { display: block; font-size: 0.95rem; }
     .differenz-info small { color: #888; font-size: 0.82rem; }
 
-    #login-section { 
-      max-width: 400px; 
+    #login-section {
+      max-width: 400px;
       margin: 80px auto;
     }
     #app-section { display: none; }
@@ -186,9 +186,9 @@
 
   <div class="container">
     <div class="tabs">
-      <div class="tab active" onclick="showTab('ocr')">📷 Foto hochladen</div>
-      <div class="tab" onclick="showTab('excel')">📊 Excel importieren</div>
-      <div class="tab" onclick="showTab('korrekturen')">📋 Korrekturen</div>
+      <div class="tab active" onclick="showTab('ocr', this)">📷 Foto hochladen</div>
+      <div class="tab" onclick="showTab('excel', this)">📊 Excel importieren</div>
+      <div class="tab" onclick="showTab('korrekturen', this)">📋 Korrekturen</div>
     </div>
 
     <!-- TAB: OCR -->
@@ -281,8 +281,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passwort: pw })
       });
+
       const data = await res.json();
-      if (data.erfolg) {
+
+      if (data.erfolg && data.token) {
         token = data.token;
         localStorage.setItem('fw_token', token);
         document.getElementById('login-section').style.display = 'none';
@@ -293,7 +295,7 @@
       }
     } catch(e) {
       status.className = 'status error';
-      status.textContent = '❌ Server nicht erreichbar';
+      status.textContent = '❌ Server nicht erreichbar: ' + e.message;
     }
   }
 
@@ -303,11 +305,11 @@
     location.reload();
   }
 
-  function showTab(name) {
+  function showTab(name, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
-    event.target.classList.add('active');
+    el.classList.add('active');
   }
 
   function fotoGewaehlt(input) {
@@ -335,32 +337,29 @@
       // Schritt 1: OCR
       const ocrRes = await fetch(`${SERVER}/webhook/ocr`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ foto: fotoBase64 })
       });
       const ocrData = await ocrRes.json();
-
-      if (!ocrData.erfolg) throw new Error(ocrData.fehler);
+      if (!ocrData.erfolg) throw new Error(ocrData.fehler || 'OCR fehlgeschlagen');
 
       status.textContent = '🔍 OCR fertig — Abgleich mit MP-Feuer läuft...';
 
       // Schritt 2: Abgleich
       const abgleichRes = await fetch(`${SERVER}/webhook/abgleich`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ ocr_daten: ocrData.daten })
       });
       const abgleich = await abgleichRes.json();
-
       if (!abgleich.erfolg) throw new Error(abgleich.fehler || abgleich.nachricht);
 
-      // Ergebnis anzeigen
       zeigeErgebnis(abgleich, ocrData.daten);
       status.className = 'status success';
       status.textContent = '✅ Abgleich abgeschlossen!';
@@ -379,9 +378,9 @@
     card.style.display = 'block';
 
     document.getElementById('person-info').innerHTML = `
-      <strong>${abgleich.person?.vorname} ${abgleich.person?.nachname}</strong>
+      <strong>${abgleich.person?.vorname || ''} ${abgleich.person?.nachname || ''}</strong>
       <span style="color:#888; margin-left:8px;">${abgleich.person?.dienstgrad || ''}</span>
-      <span style="color:#888; margin-left:8px;">Pers-Nr: ${abgleich.person?.pers_nr}</span>
+      <span style="color:#888; margin-left:8px;">Pers-Nr: ${abgleich.person?.pers_nr || ''}</span>
     `;
 
     document.getElementById('stat-eintraege').textContent = abgleich.gesamt_eintraege_dienstbuch || 0;
@@ -396,7 +395,7 @@
     liste.innerHTML = abgleich.differenzen.map(d => `
       <div class="differenz-item ${d.status}">
         <div class="differenz-info">
-          <strong>${d.bezeichnung || d.typ} ${d.stufe ? '— Stufe ' + d.stufe : ''}</strong>
+          <strong>${d.bezeichnung || d.typ}${d.stufe ? ' — Stufe ' + d.stufe : ''}</strong>
           <small>${d.datum || 'Datum unbekannt'} · ${d.aktion}</small>
         </div>
         <span class="badge orange">${d.status === 'nur_dienstbuch' ? 'Nur Dienstbuch' : 'Nur MP-Feuer'}</span>
@@ -412,20 +411,22 @@
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async e => {
-      // Excel mit SheetJS parsen
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-      
-      excelDaten = {};
-      for (const sheet of workbook.SheetNames) {
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheet], { defval: null });
-        const key = sheet.toLowerCase().replace('ä','ae').replace('ö','oe').replace('ü','ue');
-        excelDaten[key === 'lehrgaenge' ? 'lehrgaenge' : 
-                   key === 'leistungspruefungen' ? 'leistungspruefungen' : 'personal'] = rows;
+
+      excelDaten = { personal: [], lehrgaenge: [], leistungspruefungen: [] };
+
+      for (const sheetName of workbook.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, range: 1 });
+        if (sheetName === 'Personal') excelDaten.personal = rows;
+        else if (sheetName === 'Lehrgänge') excelDaten.lehrgaenge = rows;
+        else if (sheetName === 'Leistungsprüfungen') excelDaten.leistungspruefungen = rows;
       }
+
       document.getElementById('excel-btn').disabled = false;
       document.getElementById('excel-status').className = 'status success';
-      document.getElementById('excel-status').textContent = `✅ Datei gelesen: ${workbook.SheetNames.join(', ')}`;
+      document.getElementById('excel-status').textContent =
+        `✅ Datei gelesen: ${excelDaten.personal.length} Personen, ${excelDaten.lehrgaenge.length} Lehrgänge, ${excelDaten.leistungspruefungen.length} Leistungsprüfungen`;
     };
     reader.readAsArrayBuffer(file);
   }
@@ -438,7 +439,7 @@
     try {
       const res = await fetch(`${SERVER}/webhook/excel-import`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
@@ -469,13 +470,12 @@
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-
       if (!data.erfolg) throw new Error(data.fehler);
 
       status.className = 'status success';
       status.textContent = `✅ ${data.gesamt} Korrektur(en) gefunden`;
 
-      if (data.offene_korrekturen.length === 0) {
+      if (!data.offene_korrekturen || data.offene_korrekturen.length === 0) {
         liste.innerHTML = '<p style="color:#2a7a2a; text-align:center; padding:16px;">✅ Keine offenen Korrekturen!</p>';
         return;
       }
@@ -484,7 +484,7 @@
         <div class="differenz-item ${k.status}">
           <div class="differenz-info">
             <strong>${k.nachname} ${k.vorname} — ${k.bezeichnung}</strong>
-            <small>${k.datum || ''} · ${k.aktion} ${k.unsicher ? '· ⚠️ unsicher' : ''}</small>
+            <small>${k.datum || ''} · ${k.aktion}${k.unsicher ? ' · ⚠️ unsicher' : ''}</small>
           </div>
           <span class="badge orange">${k.typ}</span>
         </div>
@@ -496,7 +496,7 @@
     }
   }
 
-  // Enter-Taste beim Login
+  // Enter beim Login
   document.getElementById('passwort').addEventListener('keydown', e => {
     if (e.key === 'Enter') login();
   });

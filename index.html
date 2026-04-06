@@ -18,7 +18,6 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     .header h1 { font-size: 1.2rem; }
-    .header span { font-size: 1.8rem; }
 
     .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
 
@@ -31,7 +30,7 @@
     }
     .card h2 { margin-bottom: 16px; color: #cc0000; font-size: 1.1rem; }
 
-    input[type="password"], input[type="file"] {
+    input[type="password"] {
       width: 100%;
       padding: 10px 14px;
       border: 1px solid #ddd;
@@ -53,11 +52,7 @@
     button:hover { background: #aa0000; }
     button:disabled { background: #ccc; cursor: not-allowed; }
 
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
     .tab {
       padding: 10px 20px;
       border-radius: 8px;
@@ -66,11 +61,7 @@
       border: 2px solid #ddd;
       font-size: 0.95rem;
     }
-    .tab.active {
-      background: #cc0000;
-      color: white;
-      border-color: #cc0000;
-    }
+    .tab.active { background: #cc0000; color: white; border-color: #cc0000; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -86,40 +77,6 @@
     .status.success { background: #e8f8e8; color: #2a7a2a; display: block; }
     .status.error { background: #fde8e8; color: #a81a1a; display: block; }
 
-    .differenz-liste { margin-top: 16px; }
-    .differenz-item {
-      border: 1px solid #eee;
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .differenz-item.nur_dienstbuch { border-left: 4px solid #f0a500; }
-    .differenz-item.nur_mpfeuer { border-left: 4px solid #cc0000; }
-    .differenz-item.abweichung { border-left: 4px solid #1a6fa8; }
-
-    .badge {
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 12px;
-      white-space: nowrap;
-    }
-    .badge.orange { background: #fff3cd; color: #856404; }
-    .badge.red { background: #fde8e8; color: #a81a1a; }
-    .badge.unsicher { background: #f0f0f0; color: #666; }
-
-    .differenz-info { flex: 1; }
-    .differenz-info strong { display: block; font-size: 0.95rem; }
-    .differenz-info small { color: #888; font-size: 0.82rem; }
-
-    #login-section {
-      max-width: 400px;
-      margin: 80px auto;
-    }
-    #app-section { display: none; }
-
     .upload-area {
       border: 2px dashed #ddd;
       border-radius: 12px;
@@ -132,37 +89,85 @@
     .upload-area:hover { border-color: #cc0000; }
     .upload-area p { color: #888; margin-top: 8px; font-size: 0.9rem; }
 
-    .stats {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
+    .foto-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
     }
-    .stat-box {
-      flex: 1;
-      background: #f8f8f8;
+    .foto-item {
+      position: relative;
       border-radius: 8px;
-      padding: 12px;
+      overflow: hidden;
+      aspect-ratio: 3/4;
+      background: #f0f0f0;
+    }
+    .foto-item img { width: 100%; height: 100%; object-fit: cover; }
+    .foto-item .foto-status {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 4px 6px;
+      font-size: 0.7rem;
       text-align: center;
+      background: rgba(0,0,0,0.6);
+      color: white;
+    }
+    .foto-item .foto-status.ok { background: rgba(42,122,42,0.85); }
+    .foto-item .foto-status.fehler { background: rgba(168,26,26,0.85); }
+    .foto-item .foto-status.laden { background: rgba(26,111,168,0.85); }
+
+    .differenz-item {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .differenz-item.nur_dienstbuch { border-left: 4px solid #f0a500; }
+    .differenz-item.nur_mpfeuer { border-left: 4px solid #cc0000; }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    .badge.orange { background: #fff3cd; color: #856404; }
+    .badge.unsicher { background: #f0f0f0; color: #666; }
+
+    .differenz-info { flex: 1; }
+    .differenz-info strong { display: block; font-size: 0.95rem; }
+    .differenz-info small { color: #888; font-size: 0.82rem; }
+
+    #login-section { max-width: 400px; margin: 80px auto; }
+    #app-section { display: none; }
+
+    .stats { display: flex; gap: 12px; margin-bottom: 16px; }
+    .stat-box {
+      flex: 1; background: #f8f8f8;
+      border-radius: 8px; padding: 12px; text-align: center;
     }
     .stat-box .zahl { font-size: 1.8rem; font-weight: bold; color: #cc0000; }
     .stat-box .label { font-size: 0.8rem; color: #888; }
 
+    .fortschritt { background: #f0f0f0; border-radius: 8px; height: 8px; margin: 8px 0; overflow: hidden; }
+    .fortschritt-bar { height: 100%; background: #cc0000; border-radius: 8px; transition: width 0.3s; }
+
     .spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid #ffffff40;
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #ffffff40; border-top-color: white;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin-right: 8px; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .ergebnis-section { margin-top: 16px; border-top: 1px solid #eee; padding-top: 16px; }
+    .ergebnis-section h3 { font-size: 0.95rem; color: #555; margin-bottom: 8px; }
   </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-section">
   <div class="card">
     <div style="text-align:center; margin-bottom: 24px;">
@@ -176,62 +181,44 @@
   </div>
 </div>
 
-<!-- APP -->
 <div id="app-section">
   <div class="header">
-    <span>🚒</span>
+    <span style="font-size:1.8rem;">🚒</span>
     <h1>FW Tittmoning — Dienstbuch Abgleich</h1>
     <button onclick="logout()" style="width:auto; margin-left:auto; background: rgba(255,255,255,0.2); padding: 6px 16px;">Abmelden</button>
   </div>
 
   <div class="container">
     <div class="tabs">
-      <div class="tab active" onclick="showTab('ocr', this)">📷 Foto hochladen</div>
+      <div class="tab active" onclick="showTab('ocr', this)">📷 Fotos hochladen</div>
       <div class="tab" onclick="showTab('excel', this)">📊 Excel importieren</div>
       <div class="tab" onclick="showTab('korrekturen', this)">📋 Korrekturen</div>
     </div>
 
-    <!-- TAB: OCR -->
     <div id="tab-ocr" class="tab-content active">
       <div class="card">
-        <h2>📷 Dienstbuchseite scannen</h2>
+        <h2>📷 Dienstbuchseiten scannen</h2>
         <div class="upload-area" onclick="document.getElementById('foto-input').click()">
           <div style="font-size: 2rem;">📸</div>
-          <p>Foto hier klicken oder ziehen</p>
-          <p>JPG, PNG — möglichst gerades Foto, gute Beleuchtung</p>
+          <p><strong>Mehrere Fotos auf einmal möglich!</strong></p>
+          <p>JPG, PNG — klicken oder Fotos hierher ziehen</p>
         </div>
-        <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="fotoGewaehlt(this)">
-        <div id="vorschau" style="display:none; margin-bottom:12px;">
-          <img id="vorschau-bild" style="max-width:100%; border-radius:8px; max-height: 300px; object-fit: contain;">
+        <input type="file" id="foto-input" accept="image/*" multiple style="display:none" onchange="fotosGewaehlt(this)">
+        <div id="foto-grid" class="foto-grid" style="display:none"></div>
+        <div id="fortschritt-container" style="display:none">
+          <div class="fortschritt"><div class="fortschritt-bar" id="fortschritt-bar" style="width:0%"></div></div>
+          <p style="font-size:0.85rem; color:#888; text-align:center;" id="fortschritt-text"></p>
         </div>
-        <button id="scan-btn" onclick="scannen()" disabled>Seite scannen & abgleichen</button>
+        <button id="scan-btn" onclick="allesScannen()" disabled>Alle Seiten scannen & abgleichen</button>
         <div id="ocr-status" class="status"></div>
       </div>
-
-      <div id="ergebnis-card" class="card" style="display:none">
-        <h2>🔍 Abgleich-Ergebnis</h2>
-        <div id="person-info" style="margin-bottom:16px; padding: 12px; background:#f8f8f8; border-radius:8px;"></div>
-        <div class="stats">
-          <div class="stat-box">
-            <div class="zahl" id="stat-eintraege">0</div>
-            <div class="label">Einträge im Dienstbuch</div>
-          </div>
-          <div class="stat-box">
-            <div class="zahl" id="stat-differenzen">0</div>
-            <div class="label">Abweichungen gefunden</div>
-          </div>
-        </div>
-        <div id="differenz-liste" class="differenz-liste"></div>
-      </div>
+      <div id="ergebnisse-container"></div>
     </div>
 
-    <!-- TAB: EXCEL -->
     <div id="tab-excel" class="tab-content">
       <div class="card">
         <h2>📊 MP-Feuer Excel importieren</h2>
-        <p style="color:#888; font-size:0.9rem; margin-bottom:16px;">
-          Lade hier den aktuellen MP-Feuer Export hoch. Die Datei wird als Referenz gespeichert.
-        </p>
+        <p style="color:#888; font-size:0.9rem; margin-bottom:16px;">Lade hier den aktuellen MP-Feuer Export hoch.</p>
         <div class="upload-area" onclick="document.getElementById('excel-input').click()">
           <div style="font-size: 2rem;">📂</div>
           <p>Excel-Datei auswählen (.xlsx)</p>
@@ -242,7 +229,6 @@
       </div>
     </div>
 
-    <!-- TAB: KORREKTUREN -->
     <div id="tab-korrekturen" class="tab-content">
       <div class="card">
         <h2>📋 Alle offenen Korrekturen</h2>
@@ -260,10 +246,9 @@
 <script>
   const SERVER = "https://178.104.30.135.nip.io";
   let token = localStorage.getItem('fw_token') || '';
-  let fotoBase64 = '';
+  let fotoListe = [];
   let excelDaten = null;
 
-  // Auto-Login prüfen
   if (token) {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('app-section').style.display = 'block';
@@ -274,16 +259,13 @@
     const status = document.getElementById('login-status');
     status.className = 'status info';
     status.textContent = 'Anmelden...';
-
     try {
       const res = await fetch(`${SERVER}/webhook/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passwort: pw })
       });
-
       const data = await res.json();
-
       if (data.erfolg && data.token) {
         token = data.token;
         localStorage.setItem('fw_token', token);
@@ -299,11 +281,7 @@
     }
   }
 
-  function logout() {
-    localStorage.removeItem('fw_token');
-    token = '';
-    location.reload();
-  }
+  function logout() { localStorage.removeItem('fw_token'); token = ''; location.reload(); }
 
   function showTab(name, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -312,117 +290,144 @@
     el.classList.add('active');
   }
 
-  function fotoGewaehlt(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      fotoBase64 = e.target.result.split(',')[1];
-      document.getElementById('vorschau-bild').src = e.target.result;
-      document.getElementById('vorschau').style.display = 'block';
-      document.getElementById('scan-btn').disabled = false;
-    };
-    reader.readAsDataURL(file);
+  function fotosGewaehlt(input) {
+    const files = Array.from(input.files);
+    if (!files.length) return;
+    fotoListe = [];
+    const grid = document.getElementById('foto-grid');
+    grid.style.display = 'grid';
+    grid.innerHTML = '';
+    let geladen = 0;
+    files.forEach((file, i) => {
+      const item = document.createElement('div');
+      item.className = 'foto-item';
+      item.id = `foto-${i}`;
+      item.innerHTML = `<img src="" /><div class="foto-status">Lädt...</div>`;
+      grid.appendChild(item);
+      const reader = new FileReader();
+      reader.onload = e => {
+        const base64 = e.target.result.split(',')[1];
+        fotoListe.push({ index: i, base64, name: file.name });
+        item.querySelector('img').src = e.target.result;
+        item.querySelector('.foto-status').textContent = 'Bereit';
+        geladen++;
+        if (geladen === files.length) {
+          document.getElementById('scan-btn').disabled = false;
+          document.getElementById('ocr-status').className = 'status success';
+          document.getElementById('ocr-status').textContent = `✅ ${geladen} Foto(s) bereit`;
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
-  async function scannen() {
+  async function allesScannen() {
     const btn = document.getElementById('scan-btn');
     const status = document.getElementById('ocr-status');
+    const container = document.getElementById('ergebnisse-container');
+    const fortschritt = document.getElementById('fortschritt-container');
+    const bar = document.getElementById('fortschritt-bar');
+    const fortschrittText = document.getElementById('fortschritt-text');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>Wird analysiert...';
-    status.className = 'status info';
-    status.textContent = '📷 Foto wird per OCR ausgelesen...';
+    btn.innerHTML = '<span class="spinner"></span>Wird gescannt...';
+    container.innerHTML = '';
+    fortschritt.style.display = 'block';
+    let erfolgreich = 0, fehler = 0;
 
-    try {
-      // Schritt 1: OCR
-      const ocrRes = await fetch(`${SERVER}/webhook/ocr`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ foto: fotoBase64 })
-      });
-      const ocrData = await ocrRes.json();
-      if (!ocrData.erfolg) throw new Error(ocrData.fehler || 'OCR fehlgeschlagen');
+    for (let i = 0; i < fotoListe.length; i++) {
+      const foto = fotoListe[i];
+      bar.style.width = Math.round((i / fotoListe.length) * 100) + '%';
+      fortschrittText.textContent = `Foto ${i+1} von ${fotoListe.length}: ${foto.name}`;
+      const fotoEl = document.getElementById(`foto-${foto.index}`);
+      if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status laden'; fotoEl.querySelector('.foto-status').textContent = 'Scannt...'; }
+      status.className = 'status info';
+      status.textContent = `📷 Scanne Foto ${i+1} von ${fotoListe.length}...`;
 
-      status.textContent = '🔍 OCR fertig — Abgleich mit MP-Feuer läuft...';
+      try {
+        const ocrRes = await fetch(`${SERVER}/webhook/ocr`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ foto: foto.base64 })
+        });
+        const ocrData = await ocrRes.json();
+        if (!ocrData.erfolg) throw new Error(ocrData.fehler || 'OCR fehlgeschlagen');
 
-      // Schritt 2: Abgleich
-      const abgleichRes = await fetch(`${SERVER}/webhook/abgleich`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ ocr_daten: ocrData.daten })
-      });
-      const abgleich = await abgleichRes.json();
-      if (!abgleich.erfolg) throw new Error(abgleich.fehler || abgleich.nachricht);
+        const abgleichRes = await fetch(`${SERVER}/webhook/abgleich`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ ocr_daten: ocrData.daten })
+        });
+        const abgleich = await abgleichRes.json();
+        if (!abgleich.erfolg) throw new Error(abgleich.fehler || abgleich.nachricht);
 
-      zeigeErgebnis(abgleich, ocrData.daten);
-      status.className = 'status success';
-      status.textContent = '✅ Abgleich abgeschlossen!';
-
-    } catch(e) {
-      status.className = 'status error';
-      status.textContent = '❌ Fehler: ' + e.message;
+        if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status ok'; fotoEl.querySelector('.foto-status').textContent = `✓ ${abgleich.differenzen_anzahl || 0} Diff.`; }
+        zeigeErgebnis(container, foto.name, abgleich);
+        erfolgreich++;
+      } catch(e) {
+        fehler++;
+        if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status fehler'; fotoEl.querySelector('.foto-status').textContent = 'Fehler'; }
+        const errDiv = document.createElement('div');
+        errDiv.className = 'card';
+        errDiv.innerHTML = `<h2 style="color:#cc0000;">❌ ${foto.name}</h2><p style="color:#888;">${e.message}</p>`;
+        container.appendChild(errDiv);
+      }
     }
 
+    bar.style.width = '100%';
+    fortschrittText.textContent = 'Fertig!';
+    status.className = erfolgreich > 0 ? 'status success' : 'status error';
+    status.textContent = `✅ ${erfolgreich} Seite(n) gescannt${fehler > 0 ? ` · ❌ ${fehler} Fehler` : ''}`;
     btn.disabled = false;
     btn.textContent = 'Nochmal scannen';
   }
 
-  function zeigeErgebnis(abgleich, ocr) {
-    const card = document.getElementById('ergebnis-card');
-    card.style.display = 'block';
+  function zeigeErgebnis(container, name, abgleich) {
+    const div = document.createElement('div');
+    div.className = 'card';
+    const person = abgleich.person;
+    const diffs = abgleich.differenzen || [];
+    const diffHTML = diffs.length === 0
+      ? '<p style="color:#2a7a2a; padding:8px;">✅ Keine Abweichungen gefunden</p>'
+      : diffs.map(d => `
+          <div class="differenz-item ${d.status}">
+            <div class="differenz-info">
+              <strong>${d.bezeichnung || d.typ}${d.stufe ? ' — Stufe ' + d.stufe : ''}</strong>
+              <small>${d.datum || 'Datum unbekannt'} · ${d.aktion}</small>
+            </div>
+            <span class="badge orange">${d.status === 'nur_dienstbuch' ? 'Nur Dienstbuch' : 'Nur MP-Feuer'}</span>
+            ${d.unsicher ? '<span class="badge unsicher">⚠️ unsicher</span>' : ''}
+          </div>`).join('');
 
-    document.getElementById('person-info').innerHTML = `
-      <strong>${abgleich.person?.vorname || ''} ${abgleich.person?.nachname || ''}</strong>
-      <span style="color:#888; margin-left:8px;">${abgleich.person?.dienstgrad || ''}</span>
-      <span style="color:#888; margin-left:8px;">Pers-Nr: ${abgleich.person?.pers_nr || ''}</span>
-    `;
-
-    document.getElementById('stat-eintraege').textContent = abgleich.gesamt_eintraege_dienstbuch || 0;
-    document.getElementById('stat-differenzen').textContent = abgleich.differenzen_anzahl || 0;
-
-    const liste = document.getElementById('differenz-liste');
-    if (!abgleich.differenzen || abgleich.differenzen.length === 0) {
-      liste.innerHTML = '<p style="color:#2a7a2a; text-align:center; padding:16px;">✅ Keine Abweichungen gefunden!</p>';
-      return;
-    }
-
-    liste.innerHTML = abgleich.differenzen.map(d => `
-      <div class="differenz-item ${d.status}">
-        <div class="differenz-info">
-          <strong>${d.bezeichnung || d.typ}${d.stufe ? ' — Stufe ' + d.stufe : ''}</strong>
-          <small>${d.datum || 'Datum unbekannt'} · ${d.aktion}</small>
-        </div>
-        <span class="badge orange">${d.status === 'nur_dienstbuch' ? 'Nur Dienstbuch' : 'Nur MP-Feuer'}</span>
-        ${d.unsicher ? '<span class="badge unsicher">⚠️ unsicher</span>' : ''}
+    div.innerHTML = `
+      <h2>📄 ${name}</h2>
+      ${person
+        ? `<div style="background:#f8f8f8; border-radius:8px; padding:10px 14px; margin-bottom:12px;">
+             <strong>${person.vorname||''} ${person.nachname||''}</strong>
+             <span style="color:#888; margin-left:8px; font-size:0.9rem;">${person.dienstgrad||''} · Pers-Nr: ${person.pers_nr||''}</span>
+           </div>`
+        : `<p style="color:#888; margin-bottom:12px;">${abgleich.nachricht || 'Person nicht erkannt'}</p>`}
+      <div class="stats">
+        <div class="stat-box"><div class="zahl">${abgleich.gesamt_eintraege_dienstbuch||0}</div><div class="label">Einträge erkannt</div></div>
+        <div class="stat-box"><div class="zahl">${abgleich.differenzen_anzahl||0}</div><div class="label">Abweichungen</div></div>
       </div>
-    `).join('');
-
-    card.scrollIntoView({ behavior: 'smooth' });
+      <div class="ergebnis-section"><h3>Differenzen:</h3>${diffHTML}</div>`;
+    container.appendChild(div);
   }
 
   function excelGewaehlt(input) {
     const file = input.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = async e => {
+    reader.onload = e => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-
       excelDaten = { personal: [], lehrgaenge: [], leistungspruefungen: [] };
-
       for (const sheetName of workbook.SheetNames) {
         const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, range: 1 });
         if (sheetName === 'Personal') excelDaten.personal = rows;
         else if (sheetName === 'Lehrgänge') excelDaten.lehrgaenge = rows;
         else if (sheetName === 'Leistungsprüfungen') excelDaten.leistungspruefungen = rows;
       }
-
       document.getElementById('excel-btn').disabled = false;
       document.getElementById('excel-status').className = 'status success';
       document.getElementById('excel-status').textContent =
@@ -435,23 +440,17 @@
     const status = document.getElementById('excel-status');
     status.className = 'status info';
     status.textContent = 'Wird hochgeladen...';
-
     try {
       const res = await fetch(`${SERVER}/webhook/excel-import`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ daten: excelDaten })
       });
       const data = await res.json();
       if (data.erfolg) {
         status.className = 'status success';
-        status.textContent = '✅ Excel erfolgreich importiert!';
-      } else {
-        throw new Error(data.fehler);
-      }
+        status.textContent = `✅ Excel importiert: ${data.personen} Personen, ${data.lehrgaenge} Lehrgänge, ${data.lp} Leistungsprüfungen`;
+      } else { throw new Error(data.fehler); }
     } catch(e) {
       status.className = 'status error';
       status.textContent = '❌ Fehler: ' + e.message;
@@ -464,46 +463,34 @@
     status.className = 'status info';
     status.textContent = 'Wird geladen...';
     liste.innerHTML = '';
-
     try {
       const res = await fetch(`${SERVER}/webhook/korrekturen?filter=${filter}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
       if (!data.erfolg) throw new Error(data.fehler);
-
       status.className = 'status success';
       status.textContent = `✅ ${data.gesamt} Korrektur(en) gefunden`;
-
       if (!data.offene_korrekturen || data.offene_korrekturen.length === 0) {
         liste.innerHTML = '<p style="color:#2a7a2a; text-align:center; padding:16px;">✅ Keine offenen Korrekturen!</p>';
         return;
       }
-
       liste.innerHTML = data.offene_korrekturen.map(k => `
         <div class="differenz-item ${k.status}">
           <div class="differenz-info">
             <strong>${k.nachname} ${k.vorname} — ${k.bezeichnung}</strong>
-            <small>${k.datum || ''} · ${k.aktion}${k.unsicher ? ' · ⚠️ unsicher' : ''}</small>
+            <small>${k.datum||''} · ${k.aktion}${k.unsicher ? ' · ⚠️ unsicher' : ''}</small>
           </div>
           <span class="badge orange">${k.typ}</span>
-        </div>
-      `).join('');
-
+        </div>`).join('');
     } catch(e) {
       status.className = 'status error';
       status.textContent = '❌ Fehler: ' + e.message;
     }
   }
 
-  // Enter beim Login
-  document.getElementById('passwort').addEventListener('keydown', e => {
-    if (e.key === 'Enter') login();
-  });
+  document.getElementById('passwort').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 </script>
-
-<!-- SheetJS für Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 </body>
 </html>

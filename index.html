@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FW Tittmoning — Dienstbuch Abgleich</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
+    
+    .header {
+      background: #cc0000;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .header h1 { font-size: 1.2rem; }
+    .header span { font-size: 1.8rem; }
+
+    .container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .card h2 { margin-bottom: 16px; color: #cc0000; font-size: 1.1rem; }
+
+    input[type="password"], input[type="file"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    button {
+      background: #cc0000;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { background: #aa0000; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .tab {
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: white;
+      border: 2px solid #ddd;
+      font-size: 0.95rem;
+    }
+    .tab.active {
+      background: #cc0000;
+      color: white;
+      border-color: #cc0000;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .status.info { background: #e8f4fd; color: #1a6fa8; display: block; }
+    .status.success { background: #e8f8e8; color: #2a7a2a; display: block; }
+    .status.error { background: #fde8e8; color: #a81a1a; display: block; }
+
+    .differenz-liste { margin-top: 16px; }
+    .differenz-item {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .differenz-item.nur_dienstbuch { border-left: 4px solid #f0a500; }
+    .differenz-item.nur_mpfeuer { border-left: 4px solid #cc0000; }
+    .differenz-item.abweichung { border-left: 4px solid #1a6fa8; }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    .badge.orange { background: #fff3cd; color: #856404; }
+    .badge.red { background: #fde8e8; color: #a81a1a; }
+    .badge.unsicher { background: #f0f0f0; color: #666; }
+
+    .differenz-info { flex: 1; }
+    .differenz-info strong { display: block; font-size: 0.95rem; }
+    .differenz-info small { color: #888; font-size: 0.82rem; }
+
+    #login-section { 
+      max-width: 400px; 
+      margin: 80px auto;
+    }
+    #app-section { display: none; }
+
+    .upload-area {
+      border: 2px dashed #ddd;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .upload-area:hover { border-color: #cc0000; }
+    .upload-area p { color: #888; margin-top: 8px; font-size: 0.9rem; }
+
+    .stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      flex: 1;
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-box .zahl { font-size: 1.8rem; font-weight: bold; color: #cc0000; }
+    .stat-box .label { font-size: 0.8rem; color: #888; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #ffffff40;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-section">
+  <div class="card">
+    <div style="text-align:center; margin-bottom: 24px;">
+      <div style="font-size: 3rem;">🚒</div>
+      <h1 style="color:#cc0000; margin-top: 8px;">FW Tittmoning</h1>
+      <p style="color:#888; font-size: 0.9rem; margin-top: 4px;">Dienstbuch Abgleich</p>
+    </div>
+    <input type="password" id="passwort" placeholder="Passwort eingeben" />
+    <button onclick="login()">Anmelden</button>
+    <div id="login-status" class="status"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-section">
+  <div class="header">
+    <span>🚒</span>
+    <h1>FW Tittmoning — Dienstbuch Abgleich</h1>
+    <button onclick="logout()" style="width:auto; margin-left:auto; background: rgba(255,255,255,0.2); padding: 6px 16px;">Abmelden</button>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('ocr')">📷 Foto hochladen</div>
+      <div class="tab" onclick="showTab('excel')">📊 Excel importieren</div>
+      <div class="tab" onclick="showTab('korrekturen')">📋 Korrekturen</div>
+    </div>
+
+    <!-- TAB: OCR -->
+    <div id="tab-ocr" class="tab-content active">
+      <div class="card">
+        <h2>📷 Dienstbuchseite scannen</h2>
+        <div class="upload-area" onclick="document.getElementById('foto-input').click()">
+          <div style="font-size: 2rem;">📸</div>
+          <p>Foto hier klicken oder ziehen</p>
+          <p>JPG, PNG — möglichst gerades Foto, gute Beleuchtung</p>
+        </div>
+        <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="fotoGewaehlt(this)">
+        <div id="vorschau" style="display:none; margin-bottom:12px;">
+          <img id="vorschau-bild" style="max-width:100%; border-radius:8px; max-height: 300px; object-fit: contain;">
+        </div>
+        <button id="scan-btn" onclick="scannen()" disabled>Seite scannen & abgleichen</button>
+        <div id="ocr-status" class="status"></div>
+      </div>
+
+      <div id="ergebnis-card" class="card" style="display:none">
+        <h2>🔍 Abgleich-Ergebnis</h2>
+        <div id="person-info" style="margin-bottom:16px; padding: 12px; background:#f8f8f8; border-radius:8px;"></div>
+        <div class="stats">
+          <div class="stat-box">
+            <div class="zahl" id="stat-eintraege">0</div>
+            <div class="label">Einträge im Dienstbuch</div>
+          </div>
+          <div class="stat-box">
+            <div class="zahl" id="stat-differenzen">0</div>
+            <div class="label">Abweichungen gefunden</div>
+          </div>
+        </div>
+        <div id="differenz-liste" class="differenz-liste"></div>
+      </div>
+    </div>
+
+    <!-- TAB: EXCEL -->
+    <div id="tab-excel" class="tab-content">
+      <div class="card">
+        <h2>📊 MP-Feuer Excel importieren</h2>
+        <p style="color:#888; font-size:0.9rem; margin-bottom:16px;">
+          Lade hier den aktuellen MP-Feuer Export hoch. Die Datei wird als Referenz gespeichert.
+        </p>
+        <div class="upload-area" onclick="document.getElementById('excel-input').click()">
+          <div style="font-size: 2rem;">📂</div>
+          <p>Excel-Datei auswählen (.xlsx)</p>
+        </div>
+        <input type="file" id="excel-input" accept=".xlsx" style="display:none" onchange="excelGewaehlt(this)">
+        <button id="excel-btn" onclick="excelImportieren()" disabled>Excel importieren</button>
+        <div id="excel-status" class="status"></div>
+      </div>
+    </div>
+
+    <!-- TAB: KORREKTUREN -->
+    <div id="tab-korrekturen" class="tab-content">
+      <div class="card">
+        <h2>📋 Alle offenen Korrekturen</h2>
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <button onclick="korrektorenLaden('offen')" style="flex:1">Offene anzeigen</button>
+          <button onclick="korrektorenLaden('alle')" style="flex:1; background:#666;">Alle anzeigen</button>
+        </div>
+        <div id="korrekturen-liste"></div>
+        <div id="korrekturen-status" class="status"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SERVER = "https://178.104.30.135.nip.io";
+  let token = localStorage.getItem('fw_token') || '';
+  let fotoBase64 = '';
+  let excelDaten = null;
+
+  // Auto-Login prüfen
+  if (token) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('app-section').style.display = 'block';
+  }
+
+  async function login() {
+    const pw = document.getElementById('passwort').value;
+    const status = document.getElementById('login-status');
+    status.className = 'status info';
+    status.textContent = 'Anmelden...';
+
+    try {
+      const res = await fetch(`${SERVER}/webhook/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passwort: pw })
+      });
+      const data = await res.json();
+      if (data.erfolg) {
+        token = data.token;
+        localStorage.setItem('fw_token', token);
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('app-section').style.display = 'block';
+      } else {
+        status.className = 'status error';
+        status.textContent = '❌ Falsches Passwort';
+      }
+    } catch(e) {
+      status.className = 'status error';
+      status.textContent = '❌ Server nicht erreichbar';
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('fw_token');
+    token = '';
+    location.reload();
+  }
+
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function fotoGewaehlt(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      fotoBase64 = e.target.result.split(',')[1];
+      document.getElementById('vorschau-bild').src = e.target.result;
+      document.getElementById('vorschau').style.display = 'block';
+      document.getElementById('scan-btn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function scannen() {
+    const btn = document.getElementById('scan-btn');
+    const status = document.getElementById('ocr-status');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Wird analysiert...';
+    status.className = 'status info';
+    status.textContent = '📷 Foto wird per OCR ausgelesen...';
+
+    try {
+      // Schritt 1: OCR
+      const ocrRes = await fetch(`${SERVER}/webhook/ocr`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ foto: fotoBase64 })
+      });
+      const ocrData = await ocrRes.json();
+
+      if (!ocrData.erfolg) throw new Error(ocrData.fehler);
+
+      status.textContent = '🔍 OCR fertig — Abgleich mit MP-Feuer läuft...';
+
+      // Schritt 2: Abgleich
+      const abgleichRes = await fetch(`${SERVER}/webhook/abgleich`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ocr_daten: ocrData.daten })
+      });
+      const abgleich = await abgleichRes.json();
+
+      if (!abgleich.erfolg) throw new Error(abgleich.fehler || abgleich.nachricht);
+
+      // Ergebnis anzeigen
+      zeigeErgebnis(abgleich, ocrData.daten);
+      status.className = 'status success';
+      status.textContent = '✅ Abgleich abgeschlossen!';
+
+    } catch(e) {
+      status.className = 'status error';
+      status.textContent = '❌ Fehler: ' + e.message;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Nochmal scannen';
+  }
+
+  function zeigeErgebnis(abgleich, ocr) {
+    const card = document.getElementById('ergebnis-card');
+    card.style.display = 'block';
+
+    document.getElementById('person-info').innerHTML = `
+      <strong>${abgleich.person?.vorname} ${abgleich.person?.nachname}</strong>
+      <span style="color:#888; margin-left:8px;">${abgleich.person?.dienstgrad || ''}</span>
+      <span style="color:#888; margin-left:8px;">Pers-Nr: ${abgleich.person?.pers_nr}</span>
+    `;
+
+    document.getElementById('stat-eintraege').textContent = abgleich.gesamt_eintraege_dienstbuch || 0;
+    document.getElementById('stat-differenzen').textContent = abgleich.differenzen_anzahl || 0;
+
+    const liste = document.getElementById('differenz-liste');
+    if (!abgleich.differenzen || abgleich.differenzen.length === 0) {
+      liste.innerHTML = '<p style="color:#2a7a2a; text-align:center; padding:16px;">✅ Keine Abweichungen gefunden!</p>';
+      return;
+    }
+
+    liste.innerHTML = abgleich.differenzen.map(d => `
+      <div class="differenz-item ${d.status}">
+        <div class="differenz-info">
+          <strong>${d.bezeichnung || d.typ} ${d.stufe ? '— Stufe ' + d.stufe : ''}</strong>
+          <small>${d.datum || 'Datum unbekannt'} · ${d.aktion}</small>
+        </div>
+        <span class="badge orange">${d.status === 'nur_dienstbuch' ? 'Nur Dienstbuch' : 'Nur MP-Feuer'}</span>
+        ${d.unsicher ? '<span class="badge unsicher">⚠️ unsicher</span>' : ''}
+      </div>
+    `).join('');
+
+    card.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function excelGewaehlt(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async e => {
+      // Excel mit SheetJS parsen
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+      
+      excelDaten = {};
+      for (const sheet of workbook.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheet], { defval: null });
+        const key = sheet.toLowerCase().replace('ä','ae').replace('ö','oe').replace('ü','ue');
+        excelDaten[key === 'lehrgaenge' ? 'lehrgaenge' : 
+                   key === 'leistungspruefungen' ? 'leistungspruefungen' : 'personal'] = rows;
+      }
+      document.getElementById('excel-btn').disabled = false;
+      document.getElementById('excel-status').className = 'status success';
+      document.getElementById('excel-status').textContent = `✅ Datei gelesen: ${workbook.SheetNames.join(', ')}`;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function excelImportieren() {
+    const status = document.getElementById('excel-status');
+    status.className = 'status info';
+    status.textContent = 'Wird hochgeladen...';
+
+    try {
+      const res = await fetch(`${SERVER}/webhook/excel-import`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ daten: excelDaten })
+      });
+      const data = await res.json();
+      if (data.erfolg) {
+        status.className = 'status success';
+        status.textContent = '✅ Excel erfolgreich importiert!';
+      } else {
+        throw new Error(data.fehler);
+      }
+    } catch(e) {
+      status.className = 'status error';
+      status.textContent = '❌ Fehler: ' + e.message;
+    }
+  }
+
+  async function korrektorenLaden(filter = 'offen') {
+    const status = document.getElementById('korrekturen-status');
+    const liste = document.getElementById('korrekturen-liste');
+    status.className = 'status info';
+    status.textContent = 'Wird geladen...';
+    liste.innerHTML = '';
+
+    try {
+      const res = await fetch(`${SERVER}/webhook/korrekturen?filter=${filter}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+
+      if (!data.erfolg) throw new Error(data.fehler);
+
+      status.className = 'status success';
+      status.textContent = `✅ ${data.gesamt} Korrektur(en) gefunden`;
+
+      if (data.offene_korrekturen.length === 0) {
+        liste.innerHTML = '<p style="color:#2a7a2a; text-align:center; padding:16px;">✅ Keine offenen Korrekturen!</p>';
+        return;
+      }
+
+      liste.innerHTML = data.offene_korrekturen.map(k => `
+        <div class="differenz-item ${k.status}">
+          <div class="differenz-info">
+            <strong>${k.nachname} ${k.vorname} — ${k.bezeichnung}</strong>
+            <small>${k.datum || ''} · ${k.aktion} ${k.unsicher ? '· ⚠️ unsicher' : ''}</small>
+          </div>
+          <span class="badge orange">${k.typ}</span>
+        </div>
+      `).join('');
+
+    } catch(e) {
+      status.className = 'status error';
+      status.textContent = '❌ Fehler: ' + e.message;
+    }
+  }
+
+  // Enter-Taste beim Login
+  document.getElementById('passwort').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+</script>
+
+<!-- SheetJS für Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+</body>
+</html>

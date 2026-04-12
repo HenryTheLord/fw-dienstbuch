@@ -250,7 +250,7 @@ textarea{resize:vertical;min-height:60px}
       <div><label>Geburtsname</label><input type="text" id="p-geburtsname" placeholder="falls abweichend"></div>
     </div>
     <div class="g3">
-      <div><label>Geburtsdatum</label><input type="date" id="p-gebdat"></div>
+      <div><label>Geburtsdatum</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="p-gebdat"></div>
       <div><label>Geburtsort</label><input type="text" id="p-geburtsort"></div>
       <div><label>EDV-Mitglieds-Nr.</label><input type="text" id="p-mitglnr"></div>
     </div>
@@ -336,39 +336,39 @@ textarea{resize:vertical;min-height:60px}
   <div class="card">
     <div class="card-title">Feuerwehr-Ehrenzeichen Bayern</div>
     <div class="g3">
-      <div><label>25-jährige aktive Dienstzeit am</label><input type="date" id="az-25j"></div>
-      <div><label>40-jährige aktive Dienstzeit am</label><input type="date" id="az-40j"></div>
-      <div><label>Steckkreuz am</label><input type="date" id="az-steck"></div>
+      <div><label>25-jährige aktive Dienstzeit am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-25j"></div>
+      <div><label>40-jährige aktive Dienstzeit am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-40j"></div>
+      <div><label>Steckkreuz am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-steck"></div>
     </div>
   </div>
   <div class="card">
     <div class="card-title">LFV Bayern — Bayerisches Feuerwehr-Ehrenkreuz</div>
     <div class="g3">
-      <div><label>Silber am</label><input type="date" id="az-lfv-silber"></div>
-      <div><label>Gold am</label><input type="date" id="az-lfv-gold"></div>
-      <div><label>Bayerische Feuerwehr-Ehrenmedaille am</label><input type="date" id="az-lfv-med"></div>
+      <div><label>Silber am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-lfv-silber"></div>
+      <div><label>Gold am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-lfv-gold"></div>
+      <div><label>Bayerische Feuerwehr-Ehrenmedaille am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-lfv-med"></div>
     </div>
   </div>
   <div class="card">
     <div class="card-title">Ehrennadel der Jugendfeuerwehr Bayern</div>
     <div class="g2">
-      <div><label>Silber am</label><input type="date" id="az-jfbay-silber"></div>
-      <div><label>Gold am</label><input type="date" id="az-jfbay-gold"></div>
+      <div><label>Silber am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-jfbay-silber"></div>
+      <div><label>Gold am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-jfbay-gold"></div>
     </div>
   </div>
   <div class="card">
     <div class="card-title">Deutsches Feuerwehr-Ehrenkreuz (DFV)</div>
     <div class="g3">
-      <div><label>Silber am</label><input type="date" id="az-dfv-silber"></div>
-      <div><label>Gold am</label><input type="date" id="az-dfv-gold"></div>
-      <div><label>Deutsche Feuerwehr-Ehrenmedaille am</label><input type="date" id="az-dfv-med"></div>
+      <div><label>Silber am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-dfv-silber"></div>
+      <div><label>Gold am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-dfv-gold"></div>
+      <div><label>Deutsche Feuerwehr-Ehrenmedaille am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-dfv-med"></div>
     </div>
   </div>
   <div class="card">
     <div class="card-title">Ehrennadel der Deutschen Jugendfeuerwehr</div>
     <div class="g2">
-      <div><label>Silber am</label><input type="date" id="az-djf-silber"></div>
-      <div><label>Gold am</label><input type="date" id="az-djf-gold"></div>
+      <div><label>Silber am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-djf-silber"></div>
+      <div><label>Gold am</label><input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="az-djf-gold"></div>
     </div>
   </div>
   <div class="card">
@@ -706,12 +706,53 @@ function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); }
 function getP() { return DB.persons.find(p => p.id === currentId) || null; }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
+// ===================== DATUM AUTO-FORMAT =====================
+// Converts typed digits into TT.MM.JJJJ automatically
+function setupDateInput(inp) {
+  if (!inp || inp.dataset.dateSetup) return;
+  inp.dataset.dateSetup = '1';
+  inp.addEventListener('keydown', function(e) {
+    // Allow: backspace, delete, tab, escape, arrows, home, end
+    if (['Backspace','Delete','Tab','Escape','ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+    // Allow Ctrl/Cmd shortcuts
+    if (e.ctrlKey || e.metaKey) return;
+    // Only allow digits
+    if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
+  });
+  inp.addEventListener('input', function() {
+    let raw = this.value.replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    if (raw.length > 0) out = raw.slice(0, 2);
+    if (raw.length > 2) out += '.' + raw.slice(2, 4);
+    if (raw.length > 4) out += '.' + raw.slice(4, 8);
+    // only update if changed (prevents cursor jump loop)
+    if (this.value !== out) {
+      const pos = out.length;
+      this.value = out;
+      try { this.setSelectionRange(pos, pos); } catch(e) {}
+    }
+  });
+}
+
+// Apply to all .dateinput elements (static + dynamically created)
+function applyDateInputs(root) {
+  (root || document).querySelectorAll('input.dateinput').forEach(setupDateInput);
+}
+
+// Patch createElement / innerHTML to auto-init date inputs after dynamic render
+const _origQueryAll = document.querySelectorAll.bind(document);
+// We'll call applyDateInputs() after every render function instead
+
 // ===================== AUTOCOMPLETE =====================
-const AC = {
+
+// Seed data — fallback hints if DB is empty
+const AC_SEED = {
   'p-feuerwehr': ['Stadt Tittmoning','FF Tittmoning','Freiwillige Feuerwehr Tittmoning'],
   ausb_art: [
-    'Truppmann Teil 1: Feuerwehr-Grundausbildung','Truppmann Teil 2: Ausbildungsdienst in der Feuerwehr',
-    'Truppführer','Atemschutzgeräteträger',
+    'Truppmann Teil 1: Feuerwehr-Grundausbildung',
+    'Truppmann Teil 2: Ausbildungsdienst in der Feuerwehr',
+    'Truppführer',
+    'Atemschutzgeräteträger',
     'Maschinist für Tragkraftspritzen und Löschfahrzeuge',
     'Sprechfunker','Gruppenführer','Zugführer',
     'AGT Zusatzmodul Einsatz der WBK',
@@ -721,129 +762,170 @@ const AC = {
     'Führungsstufe B','CSL-Lehrgang',
     'MFA Dokumentation','MFA Lagekarte','MFA Einsatzleiter','THL-LKW',
     'ABC-Grundlagen','DLK Maschinist','Löschschaum',
-    'Motorsäge Modul A','FRW Soziale Ausbildung','Zugführer'
+    'Motorsäge Modul A','FRW Soziale Ausbildung',
   ],
   ausb_ort: ['Tittmoning','Traunreut','Trostberg','Pietling','Siegsdorf','Erlstätt','Kay','Kirchheim','Wagig','Burghausen'],
   lfs_art: [
     'Gruppenführer','Zugführer','ABC-Grundlagen',
     'Atemschutzgeräteträger Fortbildung BSA Stufe III – Holzbefeuert',
     'FRW Soziale Ausbildung','DLK Maschinist','Löschschaum',
-    'Motorsäge Modul A','Atemschutzgeräteträger'
+    'Motorsäge Modul A','Atemschutzgeräteträger',
   ],
   lfs_schule: [
     'Staatl. Feuerwehrschule Geretsried','AT-Ausbildungsstätte Trostberg',
-    'AT-Ausbildungsstätte RDA-Traunstein','Kreisfeuerwehrverband Traunstein',
-    'Stein'
+    'AT-Ausbildungsstätte RDA-Traunstein','Kreisfeuerwehrverband Traunstein','Stein',
   ],
   g26_art: [
     'Erstuntersuchung','Nachuntersuchung 1','Nachuntersuchung 2',
-    'Nachuntersuchung 3','Nachuntersuchung 4','Nachuntersuchung 5'
+    'Nachuntersuchung 3','Nachuntersuchung 4','Nachuntersuchung 5',
   ],
   jugend_art: [
     'Jugendleistungsprüfung','Wissenstest (Bronze)','Wissenstest (Silber)',
     'Wissenstest (Gold)','Wissenstest (Urkunde)','Jugendflamme Stufe I',
-    'Jugendflamme Stufe II','Jugendflamme Stufe III','Leistungsspange DJF'
+    'Jugendflamme Stufe II','Jugendflamme Stufe III','Leistungsspange DJF',
   ],
   wettkampf_art: [
-    'Leistungsabzeichen DFV Stufe 1','Leistungsabzeichen DFV Stufe 2',
-    'Leistungsabzeichen DFV Stufe 3'
+    'Leistungsabzeichen DFV Stufe 1','Leistungsabzeichen DFV Stufe 2','Leistungsabzeichen DFV Stufe 3',
   ],
 };
 
-function getHints(key) {
-  let base = [...(AC[key] || [])];
-  if (!DB) return base;
-  // pull from existing entries across all persons
-  DB.persons.forEach(p => {
-    if (key === 'ausb_art') {
-      (p.ausbStandort||[]).forEach(r => r.art && base.push(r.art));
-      (p.ausbLfs||[]).forEach(r => r.art && base.push(r.art));
-      (p.standortschulung||[]).forEach(r => r.art && base.push(r.art));
-    }
-    if (key === 'ausb_ort') {
-      (p.ausbStandort||[]).forEach(r => r.ort && base.push(r.ort));
-    }
-    if (key === 'lfs_schule') {
-      (p.ausbLfs||[]).forEach(r => r.schule && base.push(r.schule));
-    }
-    if (key === 'p-feuerwehr') {
-      p.feuerwehr && base.push(p.feuerwehr);
-    }
-  });
-  return [...new Set(base)].filter(Boolean);
+// Collect all values used in the DB for a given key, with frequency count
+// Returns array sorted: exact-prefix matches first, then by frequency desc
+function getHints(key, query) {
+  const freq = {}; // value -> count
+
+  function add(val, weight) {
+    if (!val || !val.trim()) return;
+    const v = val.trim();
+    freq[v] = (freq[v] || 0) + weight;
+  }
+
+  // Seed values get weight 1 each (low priority vs real data)
+  (AC_SEED[key] || []).forEach(v => add(v, 1));
+
+  if (DB) {
+    DB.persons.forEach(p => {
+      // Per-key: pull from every relevant field with weight 10 (user-entered = higher priority)
+      if (key === 'ausb_art') {
+        (p.ausbStandort||[]).forEach(r => add(r.art, 10));
+        (p.ausbLfs||[]).forEach(r => add(r.art, 10));
+        (p.standortschulung||[]).forEach(r => add(r.art, 10));
+      }
+      if (key === 'lfs_art') {
+        (p.ausbLfs||[]).forEach(r => add(r.art, 10));
+      }
+      if (key === 'ausb_ort') {
+        (p.ausbStandort||[]).forEach(r => add(r.ort, 10));
+        (p.ausbLfs||[]).forEach(r => add(r.schule, 5));
+        (p.standortschulung||[]).forEach(r => add(r.ort, 10));
+        (p.jugend||[]).forEach(r => add(r.ort, 5));
+        (p.wettkampf||[]).forEach(r => add(r.ort, 5));
+        (p.g26||[]).forEach(r => add(r.kdt, 3));
+      }
+      if (key === 'lfs_schule') {
+        (p.ausbLfs||[]).forEach(r => add(r.schule, 10));
+      }
+      if (key === 'g26_art') {
+        (p.g26||[]).forEach(r => add(r.art, 10));
+        (p.g26Sonst||[]).forEach(r => add(r.art, 10));
+      }
+      if (key === 'jugend_art') {
+        (p.jugend||[]).forEach(r => add(r.art, 10));
+      }
+      if (key === 'wettkampf_art') {
+        (p.wettkampf||[]).forEach(r => add(r.art, 10));
+      }
+      if (key === 'p-feuerwehr') {
+        add(p.feuerwehr, 10);
+        (p.mitgliedschaft||[]).forEach(m => { add(m.fw, 8); add(m.afw, 8); });
+      }
+    });
+  }
+
+  if (!query) {
+    // No query — return all sorted by frequency
+    return Object.entries(freq)
+      .sort((a,b) => b[1]-a[1])
+      .map(e => e[0]);
+  }
+
+  const q = query.toLowerCase();
+  return Object.entries(freq)
+    .filter(([v]) => v.toLowerCase().includes(q) && v.toLowerCase() !== q)
+    .sort((a, b) => {
+      const aVal = a[0].toLowerCase(), bVal = b[0].toLowerCase();
+      const aStart = aVal.startsWith(q), bStart = bVal.startsWith(q);
+      // Exact prefix match first
+      if (aStart && !bStart) return -1;
+      if (!aStart && bStart) return 1;
+      // Then by frequency desc
+      return b[1] - a[1];
+    })
+    .map(e => e[0]);
 }
 
-function setupAC(inputId, hintKey, ddId) {
-  const inp = document.getElementById(inputId);
-  const dd = document.getElementById(ddId);
+// ---- Core AC attach (works for both static and table inputs) ----
+function attachAC(inp, hintKey, dd) {
   if (!inp || !dd) return;
+  if (inp.dataset.acSetup) return;
+  inp.dataset.acSetup = '1';
   let hi = -1;
-  function show(val) {
-    if (!val) { dd.classList.remove('open'); return; }
-    const hints = getHints(hintKey).filter(h => h.toLowerCase().includes(val.toLowerCase()) && h.toLowerCase() !== val.toLowerCase());
-    if (!hints.length) { dd.classList.remove('open'); return; }
-    dd.innerHTML = hints.slice(0, 8).map((h, i) => {
-      const idx = h.toLowerCase().indexOf(val.toLowerCase());
-      const marked = h.slice(0,idx)+'<mark>'+h.slice(idx,idx+val.length)+'</mark>'+h.slice(idx+val.length);
-      return `<div class="ac-item" data-val="${h}">${marked}</div>`;
+
+  function renderDD(val) {
+    const hints = getHints(hintKey, val || '').slice(0, 10);
+    if (!hints.length || !val) { dd.classList.remove('open'); return; }
+    const q = val.toLowerCase();
+    dd.innerHTML = hints.map(h => {
+      const idx = h.toLowerCase().indexOf(q);
+      const marked = idx >= 0
+        ? h.slice(0,idx) + '<mark>' + h.slice(idx, idx+val.length) + '</mark>' + h.slice(idx+val.length)
+        : h;
+      return `<div class="ac-item" data-val="${h.replace(/"/g,'&quot;')}">${marked}</div>`;
     }).join('');
     dd.classList.add('open');
     hi = -1;
     dd.querySelectorAll('.ac-item').forEach(item => {
-      item.onmousedown = e => { e.preventDefault(); inp.value = item.dataset.val; dd.classList.remove('open'); };
+      item.onmousedown = e => { e.preventDefault(); inp.value = item.dataset.val; dd.classList.remove('open'); inp.dispatchEvent(new Event('change')); };
     });
   }
-  inp.addEventListener('input', () => show(inp.value));
+
+  inp.addEventListener('input', () => renderDD(inp.value));
+  inp.addEventListener('focus', () => { if (inp.value) renderDD(inp.value); });
   inp.addEventListener('keydown', e => {
     const items = dd.querySelectorAll('.ac-item');
-    if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi+1, items.length-1); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(hi-1, 0); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
-    else if (e.key === 'Tab' || e.key === 'Enter') {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault(); hi = Math.min(hi+1, items.length-1);
+      items.forEach((it,i) => it.classList.toggle('hi', i===hi));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault(); hi = Math.max(hi-1, 0);
+      items.forEach((it,i) => it.classList.toggle('hi', i===hi));
+    } else if (e.key === 'Tab' || e.key === 'Enter') {
       if (dd.classList.contains('open')) {
         const chosen = hi >= 0 ? items[hi] : items[0];
-        if (chosen) { if (e.key==='Tab') e.preventDefault(); inp.value = chosen.dataset.val; dd.classList.remove('open'); }
+        if (chosen) {
+          if (e.key === 'Tab') e.preventDefault();
+          inp.value = chosen.dataset.val;
+          dd.classList.remove('open');
+          inp.dispatchEvent(new Event('change'));
+        }
       }
-    }
-    else if (e.key === 'Escape') dd.classList.remove('open');
+    } else if (e.key === 'Escape') dd.classList.remove('open');
   });
-  inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 160));
+  inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 180));
 }
 
-// Dynamic AC for table inputs
+// Static AC setup (for inputs with existing dd element in DOM)
+function setupAC(inputId, hintKey, ddId) {
+  attachAC(document.getElementById(inputId), hintKey, document.getElementById(ddId));
+}
+
+// Dynamic AC for table inputs (creates its own dropdown)
 function setupTableAC(inp, hintKey) {
-  const dd = document.createElement('div');
-  dd.className = 'ac-dd';
-  inp.parentNode.appendChild(dd);
-  let hi = -1;
-  function show(val) {
-    if (!val) { dd.classList.remove('open'); return; }
-    const hints = getHints(hintKey).filter(h => h.toLowerCase().includes(val.toLowerCase()) && h.toLowerCase() !== val.toLowerCase());
-    if (!hints.length) { dd.classList.remove('open'); return; }
-    dd.innerHTML = hints.slice(0,8).map(h => {
-      const idx = h.toLowerCase().indexOf(val.toLowerCase());
-      const marked = h.slice(0,idx)+'<mark>'+h.slice(idx,idx+val.length)+'</mark>'+h.slice(idx+val.length);
-      return `<div class="ac-item" data-val="${h}">${marked}</div>`;
-    }).join('');
-    dd.classList.add('open');
-    hi = -1;
-    dd.querySelectorAll('.ac-item').forEach(item => {
-      item.onmousedown = e => { e.preventDefault(); inp.value = item.dataset.val; dd.classList.remove('open'); };
-    });
-  }
-  inp.addEventListener('input', () => show(inp.value));
-  inp.addEventListener('keydown', e => {
-    const items = dd.querySelectorAll('.ac-item');
-    if (e.key==='ArrowDown'){ e.preventDefault(); hi=Math.min(hi+1,items.length-1); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
-    else if (e.key==='ArrowUp'){ e.preventDefault(); hi=Math.max(hi-1,0); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
-    else if (e.key==='Tab'||e.key==='Enter'){
-      if (dd.classList.contains('open')){
-        const chosen = hi>=0?items[hi]:items[0];
-        if(chosen){ if(e.key==='Tab') e.preventDefault(); inp.value=chosen.dataset.val; dd.classList.remove('open'); }
-      }
-    }
-    else if(e.key==='Escape') dd.classList.remove('open');
-  });
-  inp.addEventListener('blur', ()=>setTimeout(()=>dd.classList.remove('open'),160));
+  if (!inp) return;
+  // reuse existing dd if already created
+  let dd = inp.parentNode.querySelector('.ac-dd');
+  if (!dd) { dd = document.createElement('div'); dd.className = 'ac-dd'; inp.parentNode.appendChild(dd); }
+  attachAC(inp, hintKey, dd);
 }
 
 // ===================== NAV =====================
@@ -921,6 +1003,7 @@ function renderAll() {
   renderStandortschulung(p);
   renderG26(p);
   renderVermerke(p);
+  applyDateInputs();
 }
 
 // ===================== PERSONALIEN =====================
@@ -991,7 +1074,7 @@ function buildMitgliedCard(m, i) {
     <div class="cb-row"><input type="checkbox" id="m-wf-${i}" ${m.wf?'checked':''}><label for="m-wf-${i}">Werkfeuerwehr</label></div>
     <div class="g3" style="margin-top:.75rem">
       <div><label>Feuerwehr / Ort</label><input type="text" class="m-fw" value="${m.fw||''}"></div>
-      <div><label>am (Datum)</label><input type="date" class="m-datum" value="${m.datum||''}"></div>
+      <div><label>am (Datum)</label><input class="dateinput m-datum" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${m.datum||''}"></div>
       <div></div>
     </div>
     <hr style="border:none;border-top:1px solid var(--border);margin:.75rem 0">
@@ -1000,7 +1083,7 @@ function buildMitgliedCard(m, i) {
     <div class="cb-row"><input type="checkbox" id="m-awf-${i}" ${m.awf?'checked':''}><label for="m-awf-${i}">Werkfeuerwehr</label></div>
     <div class="g3" style="margin-top:.75rem">
       <div><label>Feuerwehr / Ort</label><input type="text" class="m-afw" value="${m.afw||''}"></div>
-      <div><label>am (Datum)</label><input type="date" class="m-adatum" value="${m.adatum||''}"></div>
+      <div><label>am (Datum)</label><input class="dateinput m-adatum" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${m.adatum||''}"></div>
       <div><label>wegen</label><input type="text" class="m-wegen" value="${m.wegen||''}"></div>
     </div>`;
   return d;
@@ -1008,6 +1091,7 @@ function buildMitgliedCard(m, i) {
 function addMitglied() {
   const c = document.getElementById('mitglied-container');
   c.appendChild(buildMitgliedCard({}, c.children.length));
+  applyDateInputs(c.lastElementChild);
 }
 function collectMitglied() {
   return [...document.querySelectorAll('#mitglied-container .card')].map((card,i) => ({
@@ -1039,14 +1123,16 @@ function buildUnterbrCard(u) {
       <button class="btn-del" onclick="this.closest('.card').remove()">✕</button>
     </div>
     <div class="g3">
-      <div><label>von</label><input type="date" class="u-von" value="${u.von||''}"></div>
-      <div><label>bis</label><input type="date" class="u-bis" value="${u.bis||''}"></div>
+      <div><label>von</label><input class="dateinput u-von" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${u.von||''}"></div>
+      <div><label>bis</label><input class="dateinput u-bis" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${u.bis||''}"></div>
       <div><label>wegen</label><input type="text" class="u-wegen" value="${u.wegen||''}"></div>
     </div>`;
   return d;
 }
 function addUnterbr() {
-  document.getElementById('unterbr-container').appendChild(buildUnterbrCard({}));
+  const c = document.getElementById('unterbr-container');
+  c.appendChild(buildUnterbrCard({}));
+  applyDateInputs(c.lastElementChild);
 }
 function collectUnterbr() {
   return [...document.querySelectorAll('#unterbr-container .card')].map(card => ({
@@ -1084,14 +1170,14 @@ function renderGradeGrid(containerId, grades, data) {
     return `<div class="bf-item ${done}" id="bf-${g.key}">
       <div class="bf-rank">${g.label}</div>
       <div style="flex:1"><label style="font-size:10px;margin-bottom:2px">am</label>
-      <input type="date" id="bf-date-${g.key}" value="${val}" onchange="updateBfStyle('${g.key}')"></div>
+      <input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="bf-date-${g.key}" value="${val}" onchange="updateBfStyle('${g.key}')"></div>
     </div>`;
   }).join('');
 }
 function updateBfStyle(key) {
   const val = document.getElementById('bf-date-'+key)?.value;
   const el = document.getElementById('bf-'+key);
-  if (el) el.classList.toggle('done', !!val);
+  if (el) el.classList.toggle('done', !!(val && val.trim()));
 }
 function collectBefoerd() {
   const obj = {};
@@ -1117,7 +1203,7 @@ function renderFunk(p) {
     return `<div class="bf-item ${done}" id="fnk-${f.key}">
       <div class="bf-rank">${f.label}</div>
       <div style="flex:1"><label style="font-size:10px;margin-bottom:2px">am</label>
-      <input type="date" id="fnk-date-${f.key}" value="${val}" onchange="document.getElementById('fnk-${f.key}').classList.toggle('done',!!this.value)"></div>
+      <input type="text" class="dateinput" placeholder="TT.MM.JJJJ" autocomplete="off" id="fnk-date-${f.key}" value="${val}" oninput="document.getElementById('fnk-${f.key}').classList.toggle('done',this.value.length>=8)"></div>
     </div>`;
   }).join('');
   renderFunkOuter(p);
@@ -1140,12 +1226,12 @@ function buildFunkOuterRow(f) {
   d.innerHTML = `<div class="g4">
     <div><label>Funktion</label><input type="text" class="fo-funk" value="${f.funk||''}"></div>
     <div><label>Stadt / Gemeinde</label><input type="text" class="fo-gemeinde" value="${f.gemeinde||''}"></div>
-    <div><label>am (Beginn)</label><input type="date" class="fo-von" value="${f.von||''}"></div>
-    <div><label>Beendigung am</label><input type="date" class="fo-bis" value="${f.bis||''}"></div>
+    <div><label>am (Beginn)</label><input class="dateinput fo-von" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${f.von||''}"></div>
+    <div><label>Beendigung am</label><input class="dateinput fo-bis" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${f.bis||''}"></div>
   </div><button class="btn-del" style="float:right;margin-top:-28px" onclick="this.closest('.card').remove()">✕</button>`;
   return d;
 }
-function addFunkOuter() { document.getElementById('funk-outer-container').appendChild(buildFunkOuterRow({})); }
+function addFunkOuter() { const c=document.getElementById('funk-outer-container'); c.appendChild(buildFunkOuterRow({})); applyDateInputs(c.lastElementChild); }
 function collectFunkOuter() {
   return [...document.querySelectorAll('#funk-outer-container .card')].map(c => ({
     funk: c.querySelector('.fo-funk')?.value||'',
@@ -1165,11 +1251,11 @@ function buildFunkSonstRow(f) {
   d.innerHTML = `<div class="g3">
     <div><label>Funktion</label><input type="text" class="fs-funk" value="${f.funk||''}"></div>
     <div><label>Gemeinde/Landkreis/Bezirk/Land/Bund</label><input type="text" class="fs-ebene" value="${f.ebene||''}"></div>
-    <div class="g2" style="margin:0"><div><label>am</label><input type="date" class="fs-von" value="${f.von||''}"></div><div><label>Beendigung am</label><input type="date" class="fs-bis" value="${f.bis||''}"></div></div>
+    <div class="g2" style="margin:0"><div><label>am</label><input class="dateinput fs-von" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${f.von||''}"></div><div><label>Beendigung am</label><input class="dateinput fs-bis" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${f.bis||''}"></div></div>
   </div><button class="btn-del" style="float:right;margin-top:-28px" onclick="this.closest('.card').remove()">✕</button>`;
   return d;
 }
-function addFunkSonst() { document.getElementById('funk-sonst-container').appendChild(buildFunkSonstRow({})); }
+function addFunkSonst() { const c=document.getElementById('funk-sonst-container'); c.appendChild(buildFunkSonstRow({})); applyDateInputs(c.lastElementChild); }
 function collectFunkSonst() {
   return [...document.querySelectorAll('#funk-sonst-container .card')].map(c => ({
     funk: c.querySelector('.fs-funk')?.value||'',
@@ -1198,12 +1284,12 @@ function buildAzSonstRow(a) {
   d.className='card'; d.style.marginBottom='8px';
   d.innerHTML=`<div class="g3">
     <div><label>Bezeichnung</label><input type="text" class="az-bez" value="${a.bez||''}"></div>
-    <div><label>am</label><input type="date" class="az-datum" value="${a.datum||''}"></div>
+    <div><label>am</label><input class="dateinput az-datum" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${a.datum||''}"></div>
     <div><label>Bestätigung</label><input type="text" class="az-best" value="${a.best||''}"></div>
   </div><button class="btn-del" style="float:right;margin-top:-28px" onclick="this.closest('.card').remove()">✕</button>`;
   return d;
 }
-function addAzSonst() { document.getElementById('az-sonst-container').appendChild(buildAzSonstRow({})); }
+function addAzSonst() { const c=document.getElementById('az-sonst-container'); c.appendChild(buildAzSonstRow({})); applyDateInputs(c.lastElementChild); }
 function collectAzSonst() {
   return [...document.querySelectorAll('#az-sonst-container .card')].map(c=>({
     bez:c.querySelector('.az-bez')?.value||'',datum:c.querySelector('.az-datum')?.value||'',best:c.querySelector('.az-best')?.value||''
@@ -1224,11 +1310,12 @@ function renderLPTable(tbodyId, data, stufen) {
     const row = data.find(r=>r.stufe===st)||{stufe:st};
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><span class="td-stufe">${st}</span></td>
-      <td><input type="date" class="lp-datum" value="${row.datum||''}"></td>
+      <td><input class="dateinput lp-datum" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${row.datum||''}"></td>
       <td><div class="ac-wrap"><input type="text" class="lp-fw" value="${row.fw||''}" autocomplete="off"></div></td>
       <td><input type="text" class="lp-kbr" value="${row.kbr||''}"></td>`;
     tbody.appendChild(tr);
     setupTableAC(tr.querySelector('.lp-fw'), 'ausb_ort');
+    applyDateInputs(tr);
   });
 }
 function collectLP(tbodyId) {
@@ -1273,16 +1360,17 @@ function addLfsRow(r) {
   const tr = document.createElement('tr');
   tr.innerHTML=`
     <td><div class="ac-wrap"><input type="text" class="f-art" value="${r.art||''}" autocomplete="off"></div></td>
-    <td><input type="date" class="f-von" value="${r.von||''}"></td>
-    <td><input type="date" class="f-bis" value="${r.bis||''}"></td>
+    <td><input class="dateinput f-von" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${r.von||''}"></td>
+    <td><input class="dateinput f-bis" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${r.bis||''}"></td>
     <td><div class="ac-wrap"><input type="text" class="f-schule" value="${r.schule||''}" autocomplete="off"></div></td>
     <td><input type="text" class="f-kdt" value="${r.kdt||''}"></td>
     <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>`;
   tbody.appendChild(tr);
   setupTableAC(tr.querySelector('.f-art'),'lfs_art');
   setupTableAC(tr.querySelector('.f-schule'),'lfs_schule');
+  applyDateInputs(tr);
 }
-function addAusbLfs() { addLfsRow({}); }
+function addAusbLfs() { addLfsRow({}); applyDateInputs(document.getElementById('ausb-lfs-body').lastElementChild); }
 
 // ===================== STANDORTSCHULUNG =====================
 function renderStandortschulung(p) {
@@ -1330,9 +1418,10 @@ function _addDynRow(tbody, r, fields) {
   const tr = document.createElement('tr');
   tr.innerHTML = fields.map(f => {
     const isDate = f==='datum'||f==='von'||f==='bis'||f==='naechste';
-    return `<td>${isDate?`<input type="date" class="f-${f}" value="${r[f]||''}">`:`<div class="ac-wrap"><input type="text" class="f-${f}" value="${r[f]||''}" autocomplete="off"></div>`}</td>`;
+    return `<td>${isDate?`<input class="dateinput f-${f}" type="text" placeholder="TT.MM.JJJJ" autocomplete="off" value="${r[f]||''}">`:`<div class="ac-wrap"><input type="text" class="f-${f}" value="${r[f]||''}" autocomplete="off"></div>`}</td>`;
   }).join('') + `<td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>`;
   tbody.appendChild(tr);
+  applyDateInputs(tr);
   return tr;
 }
 function collectTableRows(tbodyId, fields) {
@@ -1674,6 +1763,7 @@ function clearAllData() {
 
 
 setupAC('p-feuerwehr','p-feuerwehr','dd-p-feuerwehr');
+applyDateInputs();
 refreshPersonSel();
 
 // If there's one person, preselect

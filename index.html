@@ -1,592 +1,1461 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>FW Tittmoning — Dienstbuch Abgleich</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dienstbuch — Feuerwehr Bayern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #C0392B;
+  --red-dark: #922B21;
+  --red-light: #FADBD8;
+  --red-mid: #E74C3C;
+  --cream: #FDFCFB;
+  --off-white: #F5F3F0;
+  --border: #DDD8D0;
+  --border-dark: #B8B0A4;
+  --text: #1A1714;
+  --text-2: #5C544C;
+  --text-3: #9C948A;
+  --success: #1E8449;
+  --success-bg: #EAFAF1;
+  --info: #1A5276;
+  --info-bg: #EBF5FB;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+  --radius: 6px;
+  --radius-lg: 10px;
+}
 
-    .header {
-      background: #cc0000; color: white;
-      padding: 14px 20px; display: flex; align-items: center; gap: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100;
-    }
-    .header h1 { font-size: 1.1rem; flex: 1; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:14px;background:var(--off-white);color:var(--text);min-height:100vh}
 
-    .container { max-width: 700px; margin: 24px auto; padding: 0 14px; }
+/* ---- HEADER ---- */
+.app-header{background:var(--red);color:#fff;padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:54px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.app-header .logo{font-size:18px;font-weight:600;letter-spacing:-0.02em;white-space:nowrap}
+.app-header .logo span{opacity:.7;font-weight:400;font-size:13px;margin-left:8px}
+.header-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.header-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;border-radius:var(--radius);padding:5px 12px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.header-btn:hover{background:rgba(255,255,255,0.25)}
+.header-btn svg{width:14px;height:14px;flex-shrink:0}
 
-    .card {
-      background: white; border-radius: 12px; padding: 20px;
-      margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .card h2 { margin-bottom: 14px; color: #cc0000; font-size: 1.05rem; }
+/* ---- LAYOUT ---- */
+.app-body{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 54px)}
+@media(max-width:768px){.app-body{grid-template-columns:1fr}.sidebar{display:none}}
 
-    input[type="password"], select {
-      width: 100%; padding: 12px 14px; border: 1px solid #ddd;
-      border-radius: 8px; font-size: 1rem; margin-bottom: 12px;
-      background: white;
-    }
+/* ---- SIDEBAR ---- */
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:1rem 0;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+.sidebar-section{padding:0 .75rem;margin-bottom:1rem}
+.sidebar-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:.25rem .5rem;margin-bottom:.25rem}
+.nav-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 10px;border-radius:var(--radius);border:none;background:transparent;font-family:inherit;font-size:13px;color:var(--text-2);cursor:pointer;transition:all .15s}
+.nav-btn:hover{background:var(--off-white);color:var(--text)}
+.nav-btn.active{background:var(--red-light);color:var(--red-dark);font-weight:500}
+.nav-btn .num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3);margin-left:auto;background:var(--off-white);padding:1px 5px;border-radius:3px}
+.nav-btn.active .num{background:rgba(192,57,43,.12);color:var(--red-dark)}
 
-    .btn {
-      background: #cc0000; color: white; border: none;
-      padding: 12px 24px; border-radius: 8px; font-size: 1rem;
-      cursor: pointer; width: 100%; margin-bottom: 8px;
-    }
-    .btn:hover { background: #aa0000; }
-    .btn:disabled { background: #ccc; cursor: not-allowed; }
-    .btn.grau { background: #666; }
-    .btn.grau:hover { background: #444; }
-    .btn.gruen { background: #2a7a2a; }
-    .btn.gruen:hover { background: #1a5a1a; }
+/* ---- PERSON BAR ---- */
+.person-bar{background:#fff;border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:#fff;flex-shrink:0;font-family:'IBM Plex Mono',monospace}
+.person-select-wrap{flex:1;min-width:180px;max-width:320px}
+.person-select-wrap select{width:100%}
+.person-info{font-size:12px;color:var(--text-3);padding-left:4px}
 
-    .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab {
-      padding: 9px 16px; border-radius: 8px; cursor: pointer;
-      background: white; border: 2px solid #ddd; font-size: 0.9rem;
-    }
-    .tab.active { background: #cc0000; color: white; border-color: #cc0000; }
+/* ---- MAIN ---- */
+.main{padding:1.5rem;max-width:900px}
+.section{display:none}.section.active{display:block}
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+/* ---- PAGE HEADER ---- */
+.page-title{font-size:18px;font-weight:600;margin-bottom:.25rem;letter-spacing:-0.01em}
+.page-sub{font-size:13px;color:var(--text-3);margin-bottom:1.5rem}
 
-    .status {
-      padding: 12px; border-radius: 8px; margin-top: 10px;
-      font-size: 0.9rem; display: none;
-    }
-    .status.info { background: #e8f4fd; color: #1a6fa8; display: block; }
-    .status.success { background: #e8f8e8; color: #2a7a2a; display: block; }
-    .status.error { background: #fde8e8; color: #a81a1a; display: block; }
-    .status.warn { background: #fff8e1; color: #856404; display: block; }
+/* ---- CARDS ---- */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 
-    .upload-area {
-      border: 2px dashed #ddd; border-radius: 12px; padding: 28px;
-      text-align: center; cursor: pointer; margin-bottom: 10px;
-      transition: border-color 0.2s;
-    }
-    .upload-area:hover { border-color: #cc0000; }
-    .upload-area p { color: #888; margin-top: 6px; font-size: 0.88rem; }
+/* ---- GRID ---- */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.g1{margin-bottom:12px}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
 
-    .kamera-bereich {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
-    }
+/* ---- FORM ---- */
+label{font-size:11px;font-weight:500;color:var(--text-2);display:block;margin-bottom:4px;letter-spacing:.02em}
+input[type=text],input[type=date],input[type=email],select,textarea{
+  width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);
+  font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;
+  transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.1)}
+input:disabled,select:disabled{background:var(--off-white);color:var(--text-3)}
+textarea{resize:vertical;min-height:60px}
+.cb-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.cb-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--red);cursor:pointer;flex-shrink:0}
+.cb-row label{margin:0;font-size:13px;color:var(--text);font-weight:400;cursor:pointer}
 
-    .foto-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 8px; margin-bottom: 10px;
-    }
-    .foto-item {
-      position: relative; border-radius: 8px; overflow: hidden;
-      aspect-ratio: 3/4; background: #f0f0f0;
-    }
-    .foto-item img { width: 100%; height: 100%; object-fit: cover; }
-    .foto-item .foto-status {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 3px 5px; font-size: 0.65rem; text-align: center;
-      background: rgba(0,0,0,0.6); color: white;
-    }
-    .foto-item .foto-status.ok { background: rgba(42,122,42,0.85); }
-    .foto-item .foto-status.fehler { background: rgba(168,26,26,0.85); }
-    .foto-item .foto-status.laden { background: rgba(26,111,168,0.85); }
+/* ---- AUTOCOMPLETE ---- */
+.ac-wrap{position:relative}
+.ac-dd{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);z-index:300;max-height:180px;overflow-y:auto;display:none;box-shadow:var(--shadow)}
+.ac-dd.open{display:block}
+.ac-item{padding:7px 10px;font-size:13px;cursor:pointer;color:var(--text)}
+.ac-item:hover,.ac-item.hi{background:var(--off-white)}
+.ac-item mark{background:none;color:var(--red);font-weight:600}
 
-    .person-box {
-      background: #f8f8f8; border-radius: 10px; padding: 14px;
-      margin-bottom: 14px; border-left: 4px solid #cc0000;
-    }
-    .person-box strong { font-size: 1rem; }
-    .person-box small { color: #888; font-size: 0.85rem; display: block; margin-top: 2px; }
+/* ---- TABLES ---- */
+.db-table{width:100%;border-collapse:collapse;font-size:12px}
+.db-table th{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--off-white)}
+.db-table td{padding:5px 5px;border-bottom:1px solid var(--border);vertical-align:middle}
+.db-table tr:last-child td{border-bottom:none}
+.db-table tr:hover td{background:#FAFAF8}
+.db-table input,.db-table select{font-size:12px;padding:4px 6px;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);width:100%;transition:border-color .15s}
+.db-table input:hover,.db-table select:hover{border-color:var(--border)}
+.db-table input:focus,.db-table select:focus{border-color:var(--red);background:#fff;outline:none;box-shadow:0 0 0 2px rgba(192,57,43,.1)}
+.db-table .ac-wrap{min-width:100px}
+.td-stufe{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;color:var(--red-dark);background:var(--red-light);text-align:center;padding:4px 6px;border-radius:4px;white-space:nowrap}
 
-    .differenz-item {
-      border: 1px solid #eee; border-radius: 8px; padding: 10px 14px;
-      margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
-    }
-    .differenz-item.nur_dienstbuch { border-left: 4px solid #f0a500; }
-    .differenz-item.nur_mpfeuer { border-left: 4px solid #cc0000; }
+/* ---- BEFÖRDERUNGEN ---- */
+.befoerd-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:500px){.befoerd-grid{grid-template-columns:1fr}}
+.bf-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--off-white);transition:all .15s}
+.bf-item.done{border-color:#A9DFBF;background:var(--success-bg)}
+.bf-item .bf-rank{font-size:11px;font-weight:600;color:var(--text-2);min-width:90px;line-height:1.3}
+.bf-item.done .bf-rank{color:var(--success)}
+.bf-item input[type=date]{flex:1;font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:#fff}
+.bf-item.done input[type=date]{border-color:#A9DFBF}
 
-    .badge { font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
-    .badge.orange { background: #fff3cd; color: #856404; }
-    .badge.unsicher { background: #f0f0f0; color: #666; }
+/* ---- BUTTONS ---- */
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.btn{padding:7px 18px;border-radius:var(--radius);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn-primary{background:var(--red);color:#fff;border:1px solid var(--red-dark)}
+.btn-primary:hover{background:var(--red-dark)}
+.btn-secondary{background:#fff;color:var(--text-2);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--off-white);color:var(--text)}
+.btn-danger{background:#fff;color:#C0392B;border:1px solid #F1948A}
+.btn-danger:hover{background:#FADBD8}
+.btn-add{width:100%;padding:7px;border:1px dashed var(--border-dark);border-radius:var(--radius);background:transparent;color:var(--text-3);font-family:'IBM Plex Sans',sans-serif;font-size:12px;cursor:pointer;margin-top:8px;transition:all .15s}
+.btn-add:hover{border-color:var(--red);color:var(--red);background:var(--red-light)}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:14px;padding:3px 6px;border-radius:4px;line-height:1;flex-shrink:0}
+.btn-del:hover{color:var(--red);background:var(--red-light)}
 
-    .differenz-info { flex: 1; }
-    .differenz-info strong { display: block; font-size: 0.92rem; }
-    .differenz-info small { color: #888; font-size: 0.8rem; }
+/* ---- HINT ---- */
+.hint{font-size:11px;color:var(--text-3);margin-top:4px}
 
-    #login-section { max-width: 380px; margin: 60px auto; padding: 0 14px; }
-    #app-section { display: none; }
+/* ---- TOAST ---- */
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--success);color:#fff;border-radius:var(--radius);padding:9px 16px;font-size:13px;font-weight:500;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;display:flex;align-items:center;gap:6px}
+#toast.show{opacity:1}
 
-    .stats { display: flex; gap: 10px; margin-bottom: 14px; }
-    .stat-box { flex: 1; background: #f8f8f8; border-radius: 8px; padding: 10px; text-align: center; }
-    .stat-box .zahl { font-size: 1.6rem; font-weight: bold; color: #cc0000; }
-    .stat-box .label { font-size: 0.75rem; color: #888; }
+/* ---- MODAL ---- */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;display:none}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg);padding:1.5rem;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:.75rem}
+.modal p{font-size:13px;color:var(--text-2);margin-bottom:1rem;line-height:1.6}
+.modal .btn-row{border-top:none;padding-top:0;margin-top:.5rem}
 
-    .fortschritt { background: #f0f0f0; border-radius: 8px; height: 6px; margin: 8px 0; overflow: hidden; }
-    .fortschritt-bar { height: 100%; background: #cc0000; border-radius: 8px; transition: width 0.3s; }
+/* ---- EMPTY STATE ---- */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text-3);font-size:13px}
+.empty svg{width:32px;height:32px;margin:0 auto .75rem;display:block;opacity:.4}
 
-    .spinner {
-      display: inline-block; width: 15px; height: 15px;
-      border: 2px solid #ffffff40; border-top-color: white;
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-      margin-right: 6px; vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .ergebnis-section { margin-top: 14px; border-top: 1px solid #eee; padding-top: 14px; }
-    .ergebnis-section h3 { font-size: 0.9rem; color: #555; margin-bottom: 8px; }
-
-    .ocr-vorschau {
-      background: #f8f8f8; border-radius: 8px; padding: 12px;
-      margin: 10px 0; font-size: 0.82rem; color: #555;
-      border-left: 3px solid #1a6fa8;
-    }
-    .ocr-vorschau strong { color: #333; display: block; margin-bottom: 4px; }
-
-    .excel-info {
-      background: #e8f8e8; border-radius: 8px; padding: 10px 14px;
-      margin-bottom: 14px; font-size: 0.88rem; color: #2a7a2a;
-      display: none;
-    }
-    .excel-info.sichtbar { display: block; }
-
-    @media (max-width: 480px) {
-      .kamera-bereich { grid-template-columns: 1fr; }
-      .tabs .tab { font-size: 0.82rem; padding: 8px 12px; }
-    }
-  </style>
+/* ---- EXPORT ---- */
+.export-section{background:var(--info-bg);border:1px solid #AED6F1;border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+.export-section h3{font-size:13px;font-weight:600;color:var(--info);margin-bottom:.5rem}
+.export-section p{font-size:12px;color:#1A5276;margin-bottom:.75rem}
+.export-btns{display:flex;gap:8px;flex-wrap:wrap}
+.export-btn{padding:6px 14px;border-radius:var(--radius);font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #AED6F1;background:#fff;color:var(--info);display:flex;align-items:center;gap:5px;transition:all .15s}
+.export-btn:hover{background:var(--info-bg)}
+</style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-section">
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo">🚒 Dienstbuch <span>Feuerwehr Bayern</span></div>
+  <div class="header-right">
+    <button class="header-btn" onclick="exportCSV('current')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l-4-4h2.5V4h3v4H12L8 12z"/><path d="M2 13h12v1.5H2z"/></svg>
+      CSV Export
+    </button>
+    <button class="header-btn" onclick="openModal('modal-new-person')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a3 3 0 100 6 3 3 0 000-6zm0 8c-3 0-6 1.4-6 2v1h12v-1c0-.6-3-2-6-2z"/></svg>
+      Neue Person
+    </button>
+  </div>
+</header>
+
+<!-- PERSON BAR -->
+<div class="person-bar">
+  <div class="avatar" id="av">?</div>
+  <div class="person-select-wrap">
+    <select id="person-sel" onchange="loadPerson()">
+      <option value="">— Person auswählen —</option>
+    </select>
+  </div>
+  <div class="person-info" id="person-info"></div>
+</div>
+
+<div class="app-body">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Person</div>
+    <button class="nav-btn active" data-sec="s-personal">Personalien</button>
+    <button class="nav-btn" data-sec="s-mitglied">Mitgliedschaft</button>
+    <button class="nav-btn" data-sec="s-unterbr">Dienstzeitunterbr.</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Laufbahn</div>
+    <button class="nav-btn" data-sec="s-befoerd">Beförderungen</button>
+    <button class="nav-btn" data-sec="s-funk">Funktionen</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Auszeichnungen</div>
+    <button class="nav-btn" data-sec="s-auszeichn">Auszeichnungen</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Prüfungen</div>
+    <button class="nav-btn" data-sec="s-lp">Leistungsabzeichen Wasser</button>
+    <button class="nav-btn" data-sec="s-jugend">Jugend & Wettbewerbe</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Ausbildung</div>
+    <button class="nav-btn" data-sec="s-ausb-standort">Standort / FwDV 2</button>
+    <button class="nav-btn" data-sec="s-ausb-lfs">Landesfeuerwehrschulen</button>
+    <button class="nav-btn" data-sec="s-standortschulung">Standortschulung</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Medizin & Sonstiges</div>
+    <button class="nav-btn" data-sec="s-g26">G26 / Untersuchungen</button>
+    <button class="nav-btn" data-sec="s-vermerke">Besondere Vermerke</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Export</div>
+    <button class="nav-btn" data-sec="s-export">CSV Export</button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+<!-- PERSONALIEN -->
+<div class="section active" id="s-personal">
+  <div class="page-title">Personalien</div>
+  <div class="page-sub">Stammblatt — Seite 1 des Dienstbuchs</div>
   <div class="card">
-    <div style="text-align:center; margin-bottom: 20px;">
-      <div style="font-size: 2.5rem;">🚒</div>
-      <h1 style="color:#cc0000; margin-top: 6px; font-size: 1.3rem;">FW Tittmoning</h1>
-      <p style="color:#888; font-size: 0.88rem; margin-top: 4px;">Dienstbuch Abgleich</p>
+    <div class="card-title">Name & Geburt</div>
+    <div class="g3">
+      <div><label>Name</label><input type="text" id="p-name" placeholder="Nachname"></div>
+      <div><label>Vorname</label><input type="text" id="p-vorname" placeholder="Vorname"></div>
+      <div><label>Geburtsname</label><input type="text" id="p-geburtsname" placeholder="falls abweichend"></div>
     </div>
-    <input type="password" id="passwort" placeholder="Passwort eingeben" />
-    <button class="btn" onclick="login()">Anmelden</button>
-    <div id="login-status" class="status"></div>
+    <div class="g3">
+      <div><label>Geburtsdatum</label><input type="date" id="p-gebdat"></div>
+      <div><label>Geburtsort</label><input type="text" id="p-geburtsort"></div>
+      <div><label>EDV-Mitglieds-Nr.</label><input type="text" id="p-mitglnr"></div>
+    </div>
+    <div class="g2">
+      <div><label>Feuerwehr</label>
+        <div class="ac-wrap"><input type="text" id="p-feuerwehr" autocomplete="off"><div class="ac-dd" id="dd-p-feuerwehr"></div></div>
+      </div>
+      <div><label>Führerschein-Klasse(n)</label><input type="text" id="p-fuehrerschein" placeholder="z.B. B, C1, CE"></div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="resetSection('personal')">Zurücksetzen</button>
+    <button class="btn btn-primary" onclick="saveSection('personal')">💾 Speichern</button>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app-section">
-  <div class="header">
-    <span style="font-size:1.5rem;">🚒</span>
-    <h1>FW Tittmoning</h1>
-    <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Abmelden</button>
+<!-- MITGLIEDSCHAFT -->
+<div class="section" id="s-mitglied">
+  <div class="page-title">Mitgliedschaft</div>
+  <div class="page-sub">Aufnahme und Austritt aus der Feuerwehr — Seiten 2–4</div>
+  <div id="mitglied-container"></div>
+  <button class="btn-add" onclick="addMitglied()">+ Weiteren Eintrag hinzufügen</button>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('mitglied')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- DIENSTZEITUNTERBRECHUNGEN -->
+<div class="section" id="s-unterbr">
+  <div class="page-title">Dienstzeitunterbrechungen</div>
+  <div class="page-sub">Seite 5 des Dienstbuchs</div>
+  <div id="unterbr-container"></div>
+  <button class="btn-add" onclick="addUnterbr()">+ Unterbrechung hinzufügen</button>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('unterbr')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- BEFÖRDERUNGEN -->
+<div class="section" id="s-befoerd">
+  <div class="page-title">Beförderungen</div>
+  <div class="page-sub">Dienstgrade — Seiten 6–7. Datum eintragen wenn erfolgt (Feld wird grün).</div>
+  <div class="card">
+    <div class="card-title">Mannschaftsgrade & Unterführer</div>
+    <div class="befoerd-grid" id="befoerd-lower"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Meistergrade</div>
+    <div class="befoerd-grid" id="befoerd-upper"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('befoerd')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- FUNKTIONEN -->
+<div class="section" id="s-funk">
+  <div class="page-title">Funktionen</div>
+  <div class="page-sub">Innere und höhere Funktionen — Seiten 7–11</div>
+  <div class="card">
+    <div class="card-title">Innere Funktionen (Gemeinde / Wehr)</div>
+    <div class="befoerd-grid" id="funk-inner"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Führungsfunktionen Landkreis / Bezirk</div>
+    <div id="funk-outer-container"></div>
+    <button class="btn-add" onclick="addFunkOuter()">+ Funktion hinzufügen</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Sonstige Funktionen</div>
+    <div id="funk-sonst-container"></div>
+    <button class="btn-add" onclick="addFunkSonst()">+ Sonstige Funktion hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('funk')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- AUSZEICHNUNGEN -->
+<div class="section" id="s-auszeichn">
+  <div class="page-title">Auszeichnungen</div>
+  <div class="page-sub">Ehrenzeichen Bayern, LFV, DFV — Seiten 12–15</div>
+  <div class="card">
+    <div class="card-title">Feuerwehr-Ehrenzeichen Bayern</div>
+    <div class="g3">
+      <div><label>25-jährige aktive Dienstzeit am</label><input type="date" id="az-25j"></div>
+      <div><label>40-jährige aktive Dienstzeit am</label><input type="date" id="az-40j"></div>
+      <div><label>Steckkreuz am</label><input type="date" id="az-steck"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">LFV Bayern — Bayerisches Feuerwehr-Ehrenkreuz</div>
+    <div class="g3">
+      <div><label>Silber am</label><input type="date" id="az-lfv-silber"></div>
+      <div><label>Gold am</label><input type="date" id="az-lfv-gold"></div>
+      <div><label>Bayerische Feuerwehr-Ehrenmedaille am</label><input type="date" id="az-lfv-med"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Ehrennadel der Jugendfeuerwehr Bayern</div>
+    <div class="g2">
+      <div><label>Silber am</label><input type="date" id="az-jfbay-silber"></div>
+      <div><label>Gold am</label><input type="date" id="az-jfbay-gold"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Deutsches Feuerwehr-Ehrenkreuz (DFV)</div>
+    <div class="g3">
+      <div><label>Silber am</label><input type="date" id="az-dfv-silber"></div>
+      <div><label>Gold am</label><input type="date" id="az-dfv-gold"></div>
+      <div><label>Deutsche Feuerwehr-Ehrenmedaille am</label><input type="date" id="az-dfv-med"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Ehrennadel der Deutschen Jugendfeuerwehr</div>
+    <div class="g2">
+      <div><label>Silber am</label><input type="date" id="az-djf-silber"></div>
+      <div><label>Gold am</label><input type="date" id="az-djf-gold"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Sonstige Auszeichnungen</div>
+    <div id="az-sonst-container"></div>
+    <button class="btn-add" onclick="addAzSonst()">+ Auszeichnung hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('auszeichn')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- LEISTUNGSABZEICHEN WASSER -->
+<div class="section" id="s-lp">
+  <div class="page-title">Leistungsabzeichen Wasser</div>
+  <div class="page-sub">Stufen 1–6 und THL-Stufen — Seiten 16–17</div>
+  <div class="card">
+    <div class="card-title">Leistungsabzeichen Wasser — Stufen 1 bis 6</div>
+    <table class="db-table">
+      <thead><tr>
+        <th style="width:60px">Stufe</th>
+        <th>Abnahmedatum</th>
+        <th>Abgelegt bei Feuerwehr</th>
+        <th>Kreisbrandrat/rätin oder Beauftragter</th>
+      </tr></thead>
+      <tbody id="lp-wasser-body"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">Technische Hilfeleistung (THL)</div>
+    <table class="db-table">
+      <thead><tr>
+        <th style="width:70px">Stufe</th>
+        <th>Abnahmedatum</th>
+        <th>Abgelegt bei Feuerwehr</th>
+        <th>Kreisbrandrat/rätin oder Beauftragter</th>
+      </tr></thead>
+      <tbody id="thl-body"></tbody>
+    </table>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('lp')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- JUGEND & WETTBEWERBE -->
+<div class="section" id="s-jugend">
+  <div class="page-title">Jugendleistungsprüfung & Wettbewerbe</div>
+  <div class="page-sub">Seiten 18–21</div>
+  <div class="card">
+    <div class="card-title">Jugendleistungsprüfung und sonstige Wettbewerbe</div>
+    <table class="db-table">
+      <thead><tr>
+        <th style="min-width:160px">Art</th>
+        <th>Prüfungsdatum</th>
+        <th>Prüfungsort / Feuerwehr</th>
+        <th>Kommandant/in · Beauftragter</th>
+        <th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="jugend-body"></tbody>
+    </table>
+    <button class="btn-add" onclick="addJugend()">+ Eintrag hinzufügen</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Weitere in- und ausländische Wettbewerbe · Leistungsabzeichen DFV</div>
+    <table class="db-table">
+      <thead><tr>
+        <th style="min-width:160px">Art</th>
+        <th>Datum</th>
+        <th>Feuerwehr / Ort</th>
+        <th>Bestätigung</th>
+        <th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="wettkampf-body"></tbody>
+    </table>
+    <button class="btn-add" onclick="addWettkampf()">+ Eintrag hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('jugend')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- AUSBILDUNG STANDORT -->
+<div class="section" id="s-ausb-standort">
+  <div class="page-title">Ausbildung am Standort / im Landkreis</div>
+  <div class="page-sub">Nach FwDV 2 — Seiten 22–23. Autocomplete: bekannte Bezeichnungen werden vorgeschlagen (Tab zum Übernehmen).</div>
+  <div class="card">
+    <table class="db-table">
+      <thead><tr>
+        <th style="min-width:190px">Art / Bezeichnung</th>
+        <th>Datum Leistungsnachweis</th>
+        <th>Ort</th>
+        <th>Führungsdienstgrad / Bestätigung</th>
+        <th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="ausb-standort-body"></tbody>
+    </table>
+    <button class="btn-add" onclick="addAusbStandort()">+ Ausbildung hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('ausbStandort')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- AUSBILDUNG LFS -->
+<div class="section" id="s-ausb-lfs">
+  <div class="page-title">Aus- und Fortbildung an den Landesfeuerwehrschulen</div>
+  <div class="page-sub">Seiten 24–27</div>
+  <div class="card">
+    <table class="db-table">
+      <thead><tr>
+        <th style="min-width:180px">Art / Lehrgang</th>
+        <th>von</th>
+        <th>bis</th>
+        <th>Schule / Ausbildungsstätte</th>
+        <th>Kommandant/in</th>
+        <th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="ausb-lfs-body"></tbody>
+    </table>
+    <button class="btn-add" onclick="addAusbLfs()">+ Lehrgang hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('ausbLfs')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- STANDORTSCHULUNG -->
+<div class="section" id="s-standortschulung">
+  <div class="page-title">Standortschulung durch die Feuerwehrschulen</div>
+  <div class="page-sub">Seiten 28–29</div>
+  <div class="card">
+    <table class="db-table">
+      <thead><tr>
+        <th style="min-width:180px">Art</th>
+        <th>Datum</th>
+        <th>Feuerwehr / Ort</th>
+        <th>Bestätigung</th>
+        <th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="standortschulung-body"></tbody>
+    </table>
+    <button class="btn-add" onclick="addStandortschulung()">+ Eintrag hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('standortschulung')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- G26 -->
+<div class="section" id="s-g26">
+  <div class="page-title">Arbeitsmedizinische Vorsorgeuntersuchungen</div>
+  <div class="page-sub">G26 (Atemschutzgeräteträger) und sonstige Untersuchungen — Seiten 30–31</div>
+  <div class="card">
+    <div class="card-title">G26 — Träger von Atemschutzgeräten (für Arbeit und Rettung)</div>
+    <table class="db-table">
+      <thead><tr>
+        <th style="min-width:140px">Art der Untersuchung</th>
+        <th>Datum</th>
+        <th>Nächste Untersuchung</th>
+        <th>Kommandant/in · Beauftragter</th>
+        <th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="g26-body"></tbody>
+    </table>
+    <button class="btn-add" onclick="addG26()">+ Untersuchung hinzufügen</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Sonstige Untersuchungen</div>
+    <table class="db-table">
+      <thead><tr>
+        <th style="min-width:140px">Art der Untersuchung</th>
+        <th>Datum</th>
+        <th>Nächste Untersuchung</th>
+        <th>Kommandant/in · Beauftragter</th>
+        <th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="g26-sonst-body"></tbody>
+    </table>
+    <button class="btn-add" onclick="addG26Sonst()">+ Untersuchung hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('g26')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- VERMERKE -->
+<div class="section" id="s-vermerke">
+  <div class="page-title">Besondere Vermerke</div>
+  <div class="page-sub">Seite 32 des Dienstbuchs — freie Einträge</div>
+  <div class="card">
+    <div id="vermerke-container"></div>
+    <button class="btn-add" onclick="addVermerk()">+ Vermerk hinzufügen</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="saveSection('vermerke')">💾 Speichern</button>
+  </div>
+</div>
+
+<!-- EXPORT -->
+<div class="section" id="s-export">
+  <div class="page-title">CSV Export</div>
+  <div class="page-sub">Daten als CSV-Datei herunterladen</div>
+
+  <div class="export-section">
+    <h3>Aktuelle Person exportieren</h3>
+    <p>Exportiert alle Daten der aktuell ausgewählten Person als mehrere CSV-Dateien (je Abschnitt eine Datei).</p>
+    <div class="export-btns">
+      <button class="export-btn" onclick="exportCSV('personal')">📄 Personalien</button>
+      <button class="export-btn" onclick="exportCSV('befoerd')">📄 Beförderungen</button>
+      <button class="export-btn" onclick="exportCSV('funk')">📄 Funktionen</button>
+      <button class="export-btn" onclick="exportCSV('auszeichn')">📄 Auszeichnungen</button>
+      <button class="export-btn" onclick="exportCSV('lp')">📄 Leistungsabzeichen</button>
+      <button class="export-btn" onclick="exportCSV('ausbildung')">📄 Ausbildung komplett</button>
+      <button class="export-btn" onclick="exportCSV('g26')">📄 G26 / Untersuchungen</button>
+      <button class="export-btn" onclick="exportCSV('all-person')">⬇️ Alles (eine CSV)</button>
+    </div>
   </div>
 
-  <div class="container">
-    <div class="tabs">
-      <div class="tab active" onclick="showTab('scan', this)">📷 Scannen</div>
-      <div class="tab" onclick="showTab('excel', this)">📊 Excel</div>
-      <div class="tab" onclick="showTab('korrekturen', this)">📋 Korrekturen</div>
-    </div>
-
-    <!-- TAB: SCANNEN -->
-    <div id="tab-scan" class="tab-content active">
-
-      <!-- Excel Status -->
-      <div id="excel-info" class="excel-info">✅ Excel geladen — <span id="excel-info-text"></span></div>
-
-      <!-- Person auswählen -->
-      <div class="card">
-        <h2>👤 Person auswählen</h2>
-        <select id="person-select" onchange="personGewaehlt()">
-          <option value="">— Bitte Person wählen —</option>
-        </select>
-        <div id="person-box" style="display:none" class="person-box">
-          <strong id="person-name"></strong>
-          <small id="person-info"></small>
-        </div>
-      </div>
-
-      <!-- Fotos -->
-      <div class="card">
-        <h2>📷 Dienstbuchseiten fotografieren</h2>
-        <div class="kamera-bereich">
-          <button class="btn" onclick="document.getElementById('kamera-input').click()">
-            📸 Foto aufnehmen
-          </button>
-          <button class="btn grau" onclick="document.getElementById('datei-input').click()">
-            🖼️ Datei wählen
-          </button>
-        </div>
-        <!-- Kamera (iPhone öffnet direkt Kamera) -->
-        <input type="file" id="kamera-input" accept="image/*" capture="environment" multiple style="display:none" onchange="fotosGewaehlt(this)">
-        <!-- Datei-Upload -->
-        <input type="file" id="datei-input" accept="image/*" multiple style="display:none" onchange="fotosGewaehlt(this)">
-
-        <div id="foto-grid" class="foto-grid" style="display:none"></div>
-
-        <div id="fortschritt-container" style="display:none">
-          <div class="fortschritt"><div class="fortschritt-bar" id="fortschritt-bar" style="width:0%"></div></div>
-          <p style="font-size:0.82rem; color:#888; text-align:center; margin-top:4px;" id="fortschritt-text"></p>
-        </div>
-
-        <button class="btn gruen" id="scan-btn" onclick="allesScannen()" disabled style="margin-top:8px;">
-          🔍 Alle Seiten scannen & abgleichen
-        </button>
-        <div id="ocr-status" class="status"></div>
-      </div>
-
-      <div id="ergebnisse-container"></div>
-    </div>
-
-    <!-- TAB: EXCEL -->
-    <div id="tab-excel" class="tab-content">
-      <div class="card">
-        <h2>📊 MP-Feuer Excel importieren</h2>
-        <p style="color:#888; font-size:0.88rem; margin-bottom:14px;">
-          Die Datei wird dauerhaft auf dem Server gespeichert — du musst sie nur neu hochladen wenn es eine neue Version gibt.
-        </p>
-        <div class="upload-area" onclick="document.getElementById('excel-input').click()">
-          <div style="font-size: 1.8rem;">📂</div>
-          <p>Excel-Datei auswählen (.xlsx)</p>
-        </div>
-        <input type="file" id="excel-input" accept=".xlsx" style="display:none" onchange="excelGewaehlt(this)">
-        <button class="btn" id="excel-btn" onclick="excelImportieren()" disabled>Excel importieren & speichern</button>
-        <div id="excel-status" class="status"></div>
-      </div>
-    </div>
-
-    <!-- TAB: KORREKTUREN -->
-    <div id="tab-korrekturen" class="tab-content">
-      <div class="card">
-        <h2>📋 Korrekturen</h2>
-        <div style="display:flex; gap:8px; margin-bottom:14px;">
-          <button class="btn" onclick="korrektorenLaden('offen')" style="flex:1">Offene</button>
-          <button class="btn grau" onclick="korrektorenLaden('alle')" style="flex:1">Alle</button>
-        </div>
-        <div id="korrekturen-liste"></div>
-        <div id="korrekturen-status" class="status"></div>
-      </div>
+  <div class="export-section">
+    <h3>Alle Personen exportieren</h3>
+    <p>Exportiert alle gespeicherten Personen in einer gemeinsamen CSV-Datei.</p>
+    <div class="export-btns">
+      <button class="export-btn" onclick="exportCSV('all-persons-ausbildung')">⬇️ Alle — Ausbildung</button>
+      <button class="export-btn" onclick="exportCSV('all-persons-befoerd')">⬇️ Alle — Beförderungen</button>
+      <button class="export-btn" onclick="exportCSV('all-persons-all')">⬇️ Alle Personen, alles</button>
     </div>
   </div>
 </div>
+
+</main>
+</div>
+
+<!-- MODAL: NEUE PERSON -->
+<div class="modal-bg" id="modal-new-person">
+  <div class="modal">
+    <h3>Neue Person anlegen</h3>
+    <p>Die Person wird gespeichert und du kannst sofort Daten eingeben.</p>
+    <div class="g2">
+      <div><label>Name</label><input type="text" id="new-name" placeholder="Nachname"></div>
+      <div><label>Vorname</label><input type="text" id="new-vorname" placeholder="Vorname"></div>
+    </div>
+    <div class="g2">
+      <div><label>Feuerwehr</label><input type="text" id="new-fw" placeholder="z.B. Stadt Tittmoning"></div>
+      <div><label>Mitglieds-Nr.</label><input type="text" id="new-nr"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal('modal-new-person')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="createPerson()">Person anlegen</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">✓ Gespeichert</div>
 
 <script>
-  const SERVER = "https://178.104.30.135.nip.io";
-  let token = localStorage.getItem('fw_token') || '';
-  let fotoListe = [];
-  let excelDaten = null;
-  let gewaehltePerson = null;
-  let personenListe = [];
+// ===================== DATA =====================
+const STORAGE_KEY = 'fw_dienstbuch_v3';
+let DB = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"persons":[]}');
+let currentId = null;
 
-  if (token) {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('app-section').style.display = 'block';
-    ladePersonen();
-  }
+function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); }
+function getP() { return DB.persons.find(p => p.id === currentId) || null; }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
-  async function login() {
-    const pw = document.getElementById('passwort').value;
-    const status = document.getElementById('login-status');
-    status.className = 'status info';
-    status.textContent = 'Anmelden...';
-    try {
-      const res = await fetch(`${SERVER}/webhook/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passwort: pw })
-      });
-      const data = await res.json();
-      if (data.erfolg && data.token) {
-        token = data.token;
-        localStorage.setItem('fw_token', token);
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('app-section').style.display = 'block';
-        ladePersonen();
-      } else {
-        status.className = 'status error';
-        status.textContent = '❌ Falsches Passwort';
-      }
-    } catch(e) {
-      status.className = 'status error';
-      status.textContent = '❌ Server nicht erreichbar';
+// ===================== AUTOCOMPLETE =====================
+const AC = {
+  'p-feuerwehr': ['Stadt Tittmoning','FF Tittmoning','Freiwillige Feuerwehr Tittmoning'],
+  ausb_art: [
+    'Truppmann Teil 1: Feuerwehr-Grundausbildung','Truppmann Teil 2: Ausbildungsdienst in der Feuerwehr',
+    'Truppführer','Atemschutzgeräteträger',
+    'Maschinist für Tragkraftspritzen und Löschfahrzeuge',
+    'Sprechfunker','Gruppenführer','Zugführer',
+    'AGT Zusatzmodul Einsatz der WBK',
+    'Atemschutzgeräteträger Fortbildung Brandübungsanlage Stufe II – Gasbefeuert',
+    'Atemschutzgeräteträger Fortbildung Brandübungsanlage Stufe III – Holzbefeuert',
+    'THZ-Lehrgang','Absturzsicherung','Brandmeldeanlage',
+    'Führungsstufe B','CSL-Lehrgang',
+    'MFA Dokumentation','MFA Lagekarte','MFA Einsatzleiter','THL-LKW',
+    'ABC-Grundlagen','DLK Maschinist','Löschschaum',
+    'Motorsäge Modul A','FRW Soziale Ausbildung','Zugführer'
+  ],
+  ausb_ort: ['Tittmoning','Traunreut','Trostberg','Pietling','Siegsdorf','Erlstätt','Kay','Kirchheim','Wagig','Burghausen'],
+  lfs_art: [
+    'Gruppenführer','Zugführer','ABC-Grundlagen',
+    'Atemschutzgeräteträger Fortbildung BSA Stufe III – Holzbefeuert',
+    'FRW Soziale Ausbildung','DLK Maschinist','Löschschaum',
+    'Motorsäge Modul A','Atemschutzgeräteträger'
+  ],
+  lfs_schule: [
+    'Staatl. Feuerwehrschule Geretsried','AT-Ausbildungsstätte Trostberg',
+    'AT-Ausbildungsstätte RDA-Traunstein','Kreisfeuerwehrverband Traunstein',
+    'Stein'
+  ],
+  g26_art: [
+    'Erstuntersuchung','Nachuntersuchung 1','Nachuntersuchung 2',
+    'Nachuntersuchung 3','Nachuntersuchung 4','Nachuntersuchung 5'
+  ],
+  jugend_art: [
+    'Jugendleistungsprüfung','Wissenstest (Bronze)','Wissenstest (Silber)',
+    'Wissenstest (Gold)','Wissenstest (Urkunde)','Jugendflamme Stufe I',
+    'Jugendflamme Stufe II','Jugendflamme Stufe III','Leistungsspange DJF'
+  ],
+  wettkampf_art: [
+    'Leistungsabzeichen DFV Stufe 1','Leistungsabzeichen DFV Stufe 2',
+    'Leistungsabzeichen DFV Stufe 3'
+  ],
+};
+
+function getHints(key) {
+  let base = [...(AC[key] || [])];
+  if (!DB) return base;
+  // pull from existing entries across all persons
+  DB.persons.forEach(p => {
+    if (key === 'ausb_art') {
+      (p.ausbStandort||[]).forEach(r => r.art && base.push(r.art));
+      (p.ausbLfs||[]).forEach(r => r.art && base.push(r.art));
+      (p.standortschulung||[]).forEach(r => r.art && base.push(r.art));
     }
-  }
-
-  function logout() { localStorage.removeItem('fw_token'); token = ''; location.reload(); }
-
-  function showTab(name, el) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-    el.classList.add('active');
-  }
-
-  async function ladePersonen() {
-    try {
-      const res = await fetch(`${SERVER}/webhook/personen`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.erfolg && data.personen) {
-        personenListe = data.personen;
-        const select = document.getElementById('person-select');
-        select.innerHTML = '<option value="">— Bitte Person wählen —</option>';
-        data.personen.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.persNr;
-          opt.textContent = `${p.nachname} ${p.vorname} (${p.dienstgrad})`;
-          opt.dataset.person = JSON.stringify(p);
-          select.appendChild(opt);
-        });
-
-        // Excel-Info anzeigen
-        const info = document.getElementById('excel-info');
-        info.className = 'excel-info sichtbar';
-        document.getElementById('excel-info-text').textContent = `${data.personen.length} Personen verfügbar`;
-      }
-    } catch(e) {
-      // Excel noch nicht importiert
-      document.getElementById('excel-info').style.display = 'none';
+    if (key === 'ausb_ort') {
+      (p.ausbStandort||[]).forEach(r => r.ort && base.push(r.ort));
     }
-  }
-
-  function personGewaehlt() {
-    const select = document.getElementById('person-select');
-    const opt = select.options[select.selectedIndex];
-    if (!opt.dataset.person) {
-      gewaehltePerson = null;
-      document.getElementById('person-box').style.display = 'none';
-      return;
+    if (key === 'lfs_schule') {
+      (p.ausbLfs||[]).forEach(r => r.schule && base.push(r.schule));
     }
-    gewaehltePerson = JSON.parse(opt.dataset.person);
-    document.getElementById('person-name').textContent = `${gewaehltePerson.nachname} ${gewaehltePerson.vorname}`;
-    document.getElementById('person-info').textContent = `${gewaehltePerson.dienstgrad} · Pers-Nr: ${gewaehltePerson.persNr} · Einheit: ${gewaehltePerson.einheit || ''}`;
-    document.getElementById('person-box').style.display = 'block';
-    aktualisiereStartBtn();
-  }
+    if (key === 'p-feuerwehr') {
+      p.feuerwehr && base.push(p.feuerwehr);
+    }
+  });
+  return [...new Set(base)].filter(Boolean);
+}
 
-  function aktualisiereStartBtn() {
-    const btn = document.getElementById('scan-btn');
-    btn.disabled = !(gewaehltePerson && fotoListe.length > 0);
-  }
-
-  function fotosGewaehlt(input) {
-    const files = Array.from(input.files);
-    if (!files.length) return;
-
-    const grid = document.getElementById('foto-grid');
-    grid.style.display = 'grid';
-
-    files.forEach((file, i) => {
-      const idx = fotoListe.length;
-      const item = document.createElement('div');
-      item.className = 'foto-item';
-      item.id = `foto-${idx}`;
-      item.innerHTML = `<img src="" /><div class="foto-status">Lädt...</div>`;
-      grid.appendChild(item);
-
-      const reader = new FileReader();
-      reader.onload = e => {
-        const base64 = e.target.result.split(',')[1];
-        fotoListe.push({ index: idx, base64, name: file.name });
-        item.querySelector('img').src = e.target.result;
-        item.querySelector('.foto-status').textContent = 'Bereit';
-        aktualisiereStartBtn();
-        document.getElementById('ocr-status').className = 'status success';
-        document.getElementById('ocr-status').textContent = `✅ ${fotoListe.length} Foto(s) bereit`;
-      };
-      reader.readAsDataURL(file);
+function setupAC(inputId, hintKey, ddId) {
+  const inp = document.getElementById(inputId);
+  const dd = document.getElementById(ddId);
+  if (!inp || !dd) return;
+  let hi = -1;
+  function show(val) {
+    if (!val) { dd.classList.remove('open'); return; }
+    const hints = getHints(hintKey).filter(h => h.toLowerCase().includes(val.toLowerCase()) && h.toLowerCase() !== val.toLowerCase());
+    if (!hints.length) { dd.classList.remove('open'); return; }
+    dd.innerHTML = hints.slice(0, 8).map((h, i) => {
+      const idx = h.toLowerCase().indexOf(val.toLowerCase());
+      const marked = h.slice(0,idx)+'<mark>'+h.slice(idx,idx+val.length)+'</mark>'+h.slice(idx+val.length);
+      return `<div class="ac-item" data-val="${h}">${marked}</div>`;
+    }).join('');
+    dd.classList.add('open');
+    hi = -1;
+    dd.querySelectorAll('.ac-item').forEach(item => {
+      item.onmousedown = e => { e.preventDefault(); inp.value = item.dataset.val; dd.classList.remove('open'); };
     });
-
-    // Input zurücksetzen damit man nochmal Fotos hinzufügen kann
-    input.value = '';
   }
-
-  async function allesScannen() {
-    if (!gewaehltePerson) {
-      document.getElementById('ocr-status').className = 'status error';
-      document.getElementById('ocr-status').textContent = '❌ Bitte zuerst Person auswählen!';
-      return;
-    }
-
-    const btn = document.getElementById('scan-btn');
-    const status = document.getElementById('ocr-status');
-    const container = document.getElementById('ergebnisse-container');
-    const fortschritt = document.getElementById('fortschritt-container');
-    const bar = document.getElementById('fortschritt-bar');
-    const fortschrittText = document.getElementById('fortschritt-text');
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>Wird gescannt...';
-    container.innerHTML = '';
-    fortschritt.style.display = 'block';
-    let erfolgreich = 0, fehler = 0;
-
-    for (let i = 0; i < fotoListe.length; i++) {
-      const foto = fotoListe[i];
-      bar.style.width = Math.round((i / fotoListe.length) * 100) + '%';
-      fortschrittText.textContent = `Foto ${i+1} von ${fotoListe.length}`;
-
-      const fotoEl = document.getElementById(`foto-${foto.index}`);
-      if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status laden'; fotoEl.querySelector('.foto-status').textContent = 'Scannt...'; }
-      status.className = 'status info';
-      status.textContent = `📷 Scanne Foto ${i+1} von ${fotoListe.length}...`;
-
-      try {
-        // OCR
-        const ocrRes = await fetch(`${SERVER}/webhook/ocr`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ foto: foto.base64 })
-        });
-        const ocrData = await ocrRes.json();
-        if (!ocrData.erfolg) throw new Error(ocrData.fehler || 'OCR fehlgeschlagen');
-
-        // Abgleich — Person wird direkt mitgeschickt (kein OCR-Name nötig)
-        const abgleichRes = await fetch(`${SERVER}/webhook/abgleich`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({
-            ocr_daten: ocrData.daten,
-            person_override: gewaehltePerson  // <-- gewählte Person überschreibt OCR-Name
-          })
-        });
-        const abgleich = await abgleichRes.json();
-        if (!abgleich.erfolg) throw new Error(abgleich.fehler || abgleich.nachricht);
-
-        if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status ok'; fotoEl.querySelector('.foto-status').textContent = `✓ ${abgleich.differenzen_anzahl || 0} Diff.`; }
-        zeigeErgebnis(container, foto.name, abgleich, ocrData.daten);
-        erfolgreich++;
-
-      } catch(e) {
-        fehler++;
-        if (fotoEl) { fotoEl.querySelector('.foto-status').className = 'foto-status fehler'; fotoEl.querySelector('.foto-status').textContent = 'Fehler'; }
-        const errDiv = document.createElement('div');
-        errDiv.className = 'card';
-        errDiv.innerHTML = `<h2 style="color:#cc0000;">❌ ${foto.name}</h2><p style="color:#888; margin-top:8px;">${e.message}</p>`;
-        container.appendChild(errDiv);
+  inp.addEventListener('input', () => show(inp.value));
+  inp.addEventListener('keydown', e => {
+    const items = dd.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi+1, items.length-1); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(hi-1, 0); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
+    else if (e.key === 'Tab' || e.key === 'Enter') {
+      if (dd.classList.contains('open')) {
+        const chosen = hi >= 0 ? items[hi] : items[0];
+        if (chosen) { if (e.key==='Tab') e.preventDefault(); inp.value = chosen.dataset.val; dd.classList.remove('open'); }
       }
     }
+    else if (e.key === 'Escape') dd.classList.remove('open');
+  });
+  inp.addEventListener('blur', () => setTimeout(() => dd.classList.remove('open'), 160));
+}
 
-    bar.style.width = '100%';
-    fortschrittText.textContent = 'Fertig!';
-    status.className = erfolgreich > 0 ? 'status success' : 'status error';
-    status.textContent = `✅ ${erfolgreich} Seite(n) gescannt${fehler > 0 ? ` · ❌ ${fehler} Fehler` : ''}`;
-    btn.disabled = false;
-    btn.innerHTML = '🔍 Nochmal scannen';
+// Dynamic AC for table inputs
+function setupTableAC(inp, hintKey) {
+  const dd = document.createElement('div');
+  dd.className = 'ac-dd';
+  inp.parentNode.appendChild(dd);
+  let hi = -1;
+  function show(val) {
+    if (!val) { dd.classList.remove('open'); return; }
+    const hints = getHints(hintKey).filter(h => h.toLowerCase().includes(val.toLowerCase()) && h.toLowerCase() !== val.toLowerCase());
+    if (!hints.length) { dd.classList.remove('open'); return; }
+    dd.innerHTML = hints.slice(0,8).map(h => {
+      const idx = h.toLowerCase().indexOf(val.toLowerCase());
+      const marked = h.slice(0,idx)+'<mark>'+h.slice(idx,idx+val.length)+'</mark>'+h.slice(idx+val.length);
+      return `<div class="ac-item" data-val="${h}">${marked}</div>`;
+    }).join('');
+    dd.classList.add('open');
+    hi = -1;
+    dd.querySelectorAll('.ac-item').forEach(item => {
+      item.onmousedown = e => { e.preventDefault(); inp.value = item.dataset.val; dd.classList.remove('open'); };
+    });
   }
-
-  function zeigeErgebnis(container, name, abgleich, ocr) {
-    const div = document.createElement('div');
-    div.className = 'card';
-    const diffs = abgleich.differenzen || [];
-
-    const diffHTML = diffs.length === 0
-      ? '<p style="color:#2a7a2a; padding:8px;">✅ Keine Abweichungen gefunden</p>'
-      : diffs.map(d => `
-          <div class="differenz-item ${d.status}">
-            <div class="differenz-info">
-              <strong>${d.bezeichnung || d.typ}${d.stufe ? ' — Stufe ' + d.stufe : ''}</strong>
-              <small>${d.datum || 'Datum unbekannt'} · ${d.aktion}</small>
-            </div>
-            <span class="badge orange">${d.status === 'nur_dienstbuch' ? 'Nur Dienstbuch' : 'Nur MP-Feuer'}</span>
-            ${d.unsicher ? '<span class="badge unsicher">⚠️ unsicher</span>' : ''}
-          </div>`).join('');
-
-    // OCR Vorschau
-    const ocrVorschau = ocr?.eintraege?.length > 0
-      ? `<div class="ocr-vorschau">
-           <strong>OCR erkannt (${ocr.seitentyp || 'Unbekannt'}):</strong>
-           ${ocr.eintraege.map(e => `${e.bezeichnung || e.typ}${e.datum_von ? ' · ' + e.datum_von : ''}${e.unsicher ? ' ⚠️' : ''}`).join('<br>')}
-         </div>`
-      : `<div class="ocr-vorschau"><strong>OCR:</strong> Keine Einträge erkannt auf dieser Seite</div>`;
-
-    div.innerHTML = `
-      <h2>📄 ${name}</h2>
-      ${ocrVorschau}
-      <div class="stats">
-        <div class="stat-box"><div class="zahl">${abgleich.gesamt_eintraege_dienstbuch||0}</div><div class="label">Einträge erkannt</div></div>
-        <div class="stat-box"><div class="zahl">${abgleich.differenzen_anzahl||0}</div><div class="label">Abweichungen</div></div>
-      </div>
-      <div class="ergebnis-section"><h3>Differenzen:</h3>${diffHTML}</div>`;
-    container.appendChild(div);
-  }
-
-  function excelGewaehlt(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-      excelDaten = { personal: [], lehrgaenge: [], leistungspruefungen: [] };
-      for (const sheetName of workbook.SheetNames) {
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: null, range: 1 });
-        if (sheetName === 'Personal') excelDaten.personal = rows;
-        else if (sheetName === 'Lehrgänge') excelDaten.lehrgaenge = rows;
-        else if (sheetName === 'Leistungsprüfungen') excelDaten.leistungspruefungen = rows;
+  inp.addEventListener('input', () => show(inp.value));
+  inp.addEventListener('keydown', e => {
+    const items = dd.querySelectorAll('.ac-item');
+    if (e.key==='ArrowDown'){ e.preventDefault(); hi=Math.min(hi+1,items.length-1); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
+    else if (e.key==='ArrowUp'){ e.preventDefault(); hi=Math.max(hi-1,0); items.forEach((it,i)=>it.classList.toggle('hi',i===hi)); }
+    else if (e.key==='Tab'||e.key==='Enter'){
+      if (dd.classList.contains('open')){
+        const chosen = hi>=0?items[hi]:items[0];
+        if(chosen){ if(e.key==='Tab') e.preventDefault(); inp.value=chosen.dataset.val; dd.classList.remove('open'); }
       }
-      document.getElementById('excel-btn').disabled = false;
-      document.getElementById('excel-status').className = 'status success';
-      document.getElementById('excel-status').textContent =
-        `✅ Datei gelesen: ${excelDaten.personal.length} Personen`;
-    };
-    reader.readAsArrayBuffer(file);
+    }
+    else if(e.key==='Escape') dd.classList.remove('open');
+  });
+  inp.addEventListener('blur', ()=>setTimeout(()=>dd.classList.remove('open'),160));
+}
+
+// ===================== NAV =====================
+document.querySelectorAll('.nav-btn[data-sec]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.sec).classList.add('active');
+  });
+});
+
+// ===================== PERSON MANAGEMENT =====================
+function refreshPersonSel() {
+  const sel = document.getElementById('person-sel');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Person auswählen —</option>';
+  DB.persons.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = [p.dienstgrad, p.name, p.vorname].filter(Boolean).join(' ') || '(unbenannt)';
+    sel.appendChild(opt);
+  });
+  if (prev) sel.value = prev;
+}
+
+function loadPerson() {
+  const sel = document.getElementById('person-sel');
+  currentId = sel.value || null;
+  const p = getP();
+  if (!p) { document.getElementById('av').textContent = '?'; document.getElementById('person-info').textContent = ''; return; }
+  const initials = ((p.name||'?')[0]+(p.vorname||'?')[0]).toUpperCase();
+  document.getElementById('av').textContent = initials;
+  document.getElementById('person-info').textContent = [p.dienstgrad, p.mitglnr ? 'Nr. '+p.mitglnr : '', p.feuerwehr].filter(Boolean).join(' · ');
+  renderAll();
+}
+
+function createPerson() {
+  const name = document.getElementById('new-name').value.trim();
+  const vorname = document.getElementById('new-vorname').value.trim();
+  const fw = document.getElementById('new-fw').value.trim();
+  const nr = document.getElementById('new-nr').value.trim();
+  if (!name) { alert('Bitte mindestens den Nachnamen eingeben.'); return; }
+  const p = { id: uid(), name, vorname, feuerwehr: fw, mitglnr: nr, gebdat:'', geburtsort:'', geburtsname:'', fuehrerschein:'', dienstgrad:'',
+    mitgliedschaft:[], unterbr:[], befoerd:{}, funk:{}, funkOuter:[], funkSonst:[], auszeichn:{}, azSonst:[],
+    lpWasser:[{stufe:'1'},{stufe:'2'},{stufe:'3'},{stufe:'4'},{stufe:'5'},{stufe:'6'}],
+    thl:[{stufe:'THL 1'},{stufe:'THL 2'},{stufe:'THL 3'},{stufe:'THL 3/1'},{stufe:'THL 3/2'},{stufe:'THL 3/3'}],
+    jugend:[], wettkampf:[], ausbStandort:[], ausbLfs:[], standortschulung:[], g26:[], g26Sonst:[], vermerke:[]
+  };
+  DB.persons.push(p);
+  saveDB();
+  closeModal('modal-new-person');
+  document.getElementById('new-name').value=''; document.getElementById('new-vorname').value=''; document.getElementById('new-fw').value=''; document.getElementById('new-nr').value='';
+  refreshPersonSel();
+  document.getElementById('person-sel').value = p.id;
+  loadPerson();
+  showToast('Person angelegt ✓');
+}
+
+function newPerson() { openModal('modal-new-person'); }
+
+// ===================== RENDER ALL =====================
+function renderAll() {
+  const p = getP(); if (!p) return;
+  renderPersonal(p);
+  renderMitglied(p);
+  renderUnterbr(p);
+  renderBefoerd(p);
+  renderFunk(p);
+  renderAuszeichn(p);
+  renderLP(p);
+  renderJugend(p);
+  renderAusbStandort(p);
+  renderAusbLfs(p);
+  renderStandortschulung(p);
+  renderG26(p);
+  renderVermerke(p);
+}
+
+// ===================== PERSONALIEN =====================
+function renderPersonal(p) {
+  document.getElementById('p-name').value = p.name||'';
+  document.getElementById('p-vorname').value = p.vorname||'';
+  document.getElementById('p-geburtsname').value = p.geburtsname||'';
+  document.getElementById('p-gebdat').value = p.gebdat||'';
+  document.getElementById('p-geburtsort').value = p.geburtsort||'';
+  document.getElementById('p-mitglnr').value = p.mitglnr||'';
+  document.getElementById('p-feuerwehr').value = p.feuerwehr||'';
+  document.getElementById('p-fuehrerschein').value = p.fuehrerschein||'';
+}
+function saveSection(key) {
+  const p = getP(); if (!p) { alert('Bitte zuerst eine Person auswählen.'); return; }
+  if (key === 'personal') {
+    p.name = document.getElementById('p-name').value.trim();
+    p.vorname = document.getElementById('p-vorname').value.trim();
+    p.geburtsname = document.getElementById('p-geburtsname').value.trim();
+    p.gebdat = document.getElementById('p-gebdat').value;
+    p.geburtsort = document.getElementById('p-geburtsort').value.trim();
+    p.mitglnr = document.getElementById('p-mitglnr').value.trim();
+    p.feuerwehr = document.getElementById('p-feuerwehr').value.trim();
+    p.fuehrerschein = document.getElementById('p-fuehrerschein').value.trim();
+    refreshPersonSel();
+    document.getElementById('person-sel').value = p.id;
+    loadPerson();
+  }
+  if (key === 'mitglied') { p.mitgliedschaft = collectMitglied(); }
+  if (key === 'unterbr') { p.unterbr = collectUnterbr(); }
+  if (key === 'befoerd') { p.befoerd = collectBefoerd(); renderBefoerd(p); }
+  if (key === 'funk') { p.funk = collectFunk(); p.funkOuter = collectFunkOuter(); p.funkSonst = collectFunkSonst(); }
+  if (key === 'auszeichn') { p.auszeichn = collectAuszeichn(); p.azSonst = collectAzSonst(); }
+  if (key === 'lp') { p.lpWasser = collectLP('lp-wasser-body'); p.thl = collectLP('thl-body'); }
+  if (key === 'jugend') { p.jugend = collectTableRows('jugend-body',['art','datum','ort','kbr']); p.wettkampf = collectTableRows('wettkampf-body',['art','datum','ort','best']); }
+  if (key === 'ausbStandort') { p.ausbStandort = collectTableRows('ausb-standort-body',['art','datum','ort','fds']); }
+  if (key === 'ausbLfs') { p.ausbLfs = collectTableRows('ausb-lfs-body',['art','von','bis','schule','kdt']); }
+  if (key === 'standortschulung') { p.standortschulung = collectTableRows('standortschulung-body',['art','datum','ort','best']); }
+  if (key === 'g26') { p.g26 = collectTableRows('g26-body',['art','datum','naechste','kdt']); p.g26Sonst = collectTableRows('g26-sonst-body',['art','datum','naechste','kdt']); }
+  if (key === 'vermerke') { p.vermerke = collectVermerke(); }
+  saveDB();
+  showToast('Gespeichert ✓');
+}
+
+function resetSection(key) {
+  if (!confirm('Abschnitt zurücksetzen?')) return;
+  const p = getP(); if (!p) return;
+  renderAll();
+}
+
+// ===================== MITGLIEDSCHAFT =====================
+function renderMitglied(p) {
+  const c = document.getElementById('mitglied-container');
+  c.innerHTML = '';
+  (p.mitgliedschaft||[]).forEach((m,i) => c.appendChild(buildMitgliedCard(m,i)));
+  if (!(p.mitgliedschaft||[]).length) addMitglied();
+}
+function buildMitgliedCard(m, i) {
+  const d = document.createElement('div');
+  d.className = 'card';
+  d.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <div class="card-title" style="margin:0;border:none;padding:0">Eintrag ${i+1}</div>
+      <button class="btn-del" onclick="this.closest('.card').remove()">✕</button>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:.5rem">AUFGENOMMEN IN DIE</div>
+    <div class="cb-row"><input type="checkbox" id="m-ff-${i}" ${m.ff?'checked':''}><label for="m-ff-${i}">Freiwillige Feuerwehr</label></div>
+    <div class="cb-row"><input type="checkbox" id="m-wf-${i}" ${m.wf?'checked':''}><label for="m-wf-${i}">Werkfeuerwehr</label></div>
+    <div class="g3" style="margin-top:.75rem">
+      <div><label>Feuerwehr / Ort</label><input type="text" class="m-fw" value="${m.fw||''}"></div>
+      <div><label>am (Datum)</label><input type="date" class="m-datum" value="${m.datum||''}"></div>
+      <div></div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:.75rem 0">
+    <div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:.5rem">AUSGETRETEN AUS DER</div>
+    <div class="cb-row"><input type="checkbox" id="m-aff-${i}" ${m.aff?'checked':''}><label for="m-aff-${i}">Freiwilligen Feuerwehr</label></div>
+    <div class="cb-row"><input type="checkbox" id="m-awf-${i}" ${m.awf?'checked':''}><label for="m-awf-${i}">Werkfeuerwehr</label></div>
+    <div class="g3" style="margin-top:.75rem">
+      <div><label>Feuerwehr / Ort</label><input type="text" class="m-afw" value="${m.afw||''}"></div>
+      <div><label>am (Datum)</label><input type="date" class="m-adatum" value="${m.adatum||''}"></div>
+      <div><label>wegen</label><input type="text" class="m-wegen" value="${m.wegen||''}"></div>
+    </div>`;
+  return d;
+}
+function addMitglied() {
+  const c = document.getElementById('mitglied-container');
+  c.appendChild(buildMitgliedCard({}, c.children.length));
+}
+function collectMitglied() {
+  return [...document.querySelectorAll('#mitglied-container .card')].map((card,i) => ({
+    ff: card.querySelector(`#m-ff-${i}`)?.checked||card.querySelector('.cb-row input:nth-of-type(1)')?.checked||false,
+    wf: card.querySelectorAll('.cb-row input')[1]?.checked||false,
+    fw: card.querySelector('.m-fw')?.value||'',
+    datum: card.querySelector('.m-datum')?.value||'',
+    aff: card.querySelectorAll('.cb-row input')[2]?.checked||false,
+    awf: card.querySelectorAll('.cb-row input')[3]?.checked||false,
+    afw: card.querySelector('.m-afw')?.value||'',
+    adatum: card.querySelector('.m-adatum')?.value||'',
+    wegen: card.querySelector('.m-wegen')?.value||''
+  }));
+}
+
+// ===================== UNTERBRECHUNGEN =====================
+function renderUnterbr(p) {
+  const c = document.getElementById('unterbr-container');
+  c.innerHTML = '';
+  (p.unterbr||[]).forEach(u => c.appendChild(buildUnterbrCard(u)));
+  if (!(p.unterbr||[]).length) addUnterbr();
+}
+function buildUnterbrCard(u) {
+  const d = document.createElement('div');
+  d.className = 'card';
+  d.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <div class="card-title" style="margin:0;border:none;padding:0">Dienstzeitunterbrechung</div>
+      <button class="btn-del" onclick="this.closest('.card').remove()">✕</button>
+    </div>
+    <div class="g3">
+      <div><label>von</label><input type="date" class="u-von" value="${u.von||''}"></div>
+      <div><label>bis</label><input type="date" class="u-bis" value="${u.bis||''}"></div>
+      <div><label>wegen</label><input type="text" class="u-wegen" value="${u.wegen||''}"></div>
+    </div>`;
+  return d;
+}
+function addUnterbr() {
+  document.getElementById('unterbr-container').appendChild(buildUnterbrCard({}));
+}
+function collectUnterbr() {
+  return [...document.querySelectorAll('#unterbr-container .card')].map(card => ({
+    von: card.querySelector('.u-von')?.value||'',
+    bis: card.querySelector('.u-bis')?.value||'',
+    wegen: card.querySelector('.u-wegen')?.value||''
+  }));
+}
+
+// ===================== BEFÖRDERUNGEN =====================
+const GRADES_LOWER = [
+  {key:'fa', label:'FA – Feuerwehranwärter/in'},
+  {key:'fm', label:'FM – Feuerwehrmann/frau'},
+  {key:'ofm', label:'OFM – Oberfeuerwehrmann/frau'},
+  {key:'hfm', label:'HFM – Hauptfeuerwehrmann/frau'},
+  {key:'lm', label:'LM – Löschmeister/in'},
+  {key:'olm', label:'OLM – Oberlöschmeister/in'},
+];
+const GRADES_UPPER = [
+  {key:'hlm', label:'HLM – Hauptlöschmeister/in'},
+  {key:'bm', label:'BM – Brandmeister/in'},
+  {key:'obm', label:'OBM – Oberbrandmeister/in'},
+  {key:'hbm', label:'HBM – Hauptbrandmeister/in'},
+];
+
+function renderBefoerd(p) {
+  renderGradeGrid('befoerd-lower', GRADES_LOWER, p.befoerd||{});
+  renderGradeGrid('befoerd-upper', GRADES_UPPER, p.befoerd||{});
+}
+function renderGradeGrid(containerId, grades, data) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = grades.map(g => {
+    const val = data[g.key]||'';
+    const done = val ? 'done' : '';
+    return `<div class="bf-item ${done}" id="bf-${g.key}">
+      <div class="bf-rank">${g.label}</div>
+      <div style="flex:1"><label style="font-size:10px;margin-bottom:2px">am</label>
+      <input type="date" id="bf-date-${g.key}" value="${val}" onchange="updateBfStyle('${g.key}')"></div>
+    </div>`;
+  }).join('');
+}
+function updateBfStyle(key) {
+  const val = document.getElementById('bf-date-'+key)?.value;
+  const el = document.getElementById('bf-'+key);
+  if (el) el.classList.toggle('done', !!val);
+}
+function collectBefoerd() {
+  const obj = {};
+  [...GRADES_LOWER,...GRADES_UPPER].forEach(g => {
+    obj[g.key] = document.getElementById('bf-date-'+g.key)?.value||'';
+  });
+  return obj;
+}
+
+// ===================== FUNKTIONEN =====================
+const FUNK_INNER = [
+  {key:'grufue', label:'Gruppenführer/in'},
+  {key:'zugfue', label:'Zugführer/in'},
+  {key:'stv_kdt', label:'Stv. Kommandant/in'},
+  {key:'kdt', label:'Kommandant/in'},
+];
+function renderFunk(p) {
+  const c = document.getElementById('funk-inner');
+  const data = p.funk||{};
+  c.innerHTML = FUNK_INNER.map(f => {
+    const val = data[f.key]||'';
+    const done = val ? 'done' : '';
+    return `<div class="bf-item ${done}" id="fnk-${f.key}">
+      <div class="bf-rank">${f.label}</div>
+      <div style="flex:1"><label style="font-size:10px;margin-bottom:2px">am</label>
+      <input type="date" id="fnk-date-${f.key}" value="${val}" onchange="document.getElementById('fnk-${f.key}').classList.toggle('done',!!this.value)"></div>
+    </div>`;
+  }).join('');
+  renderFunkOuter(p);
+  renderFunkSonst(p);
+}
+function collectFunk() {
+  const obj = {};
+  FUNK_INNER.forEach(f => { obj[f.key] = document.getElementById('fnk-date-'+f.key)?.value||''; });
+  return obj;
+}
+function renderFunkOuter(p) {
+  const c = document.getElementById('funk-outer-container');
+  c.innerHTML = '';
+  (p.funkOuter||[]).forEach(f => c.appendChild(buildFunkOuterRow(f)));
+}
+function buildFunkOuterRow(f) {
+  const d = document.createElement('div');
+  d.className = 'card';
+  d.style.marginBottom='8px';
+  d.innerHTML = `<div class="g4">
+    <div><label>Funktion</label><input type="text" class="fo-funk" value="${f.funk||''}"></div>
+    <div><label>Stadt / Gemeinde</label><input type="text" class="fo-gemeinde" value="${f.gemeinde||''}"></div>
+    <div><label>am (Beginn)</label><input type="date" class="fo-von" value="${f.von||''}"></div>
+    <div><label>Beendigung am</label><input type="date" class="fo-bis" value="${f.bis||''}"></div>
+  </div><button class="btn-del" style="float:right;margin-top:-28px" onclick="this.closest('.card').remove()">✕</button>`;
+  return d;
+}
+function addFunkOuter() { document.getElementById('funk-outer-container').appendChild(buildFunkOuterRow({})); }
+function collectFunkOuter() {
+  return [...document.querySelectorAll('#funk-outer-container .card')].map(c => ({
+    funk: c.querySelector('.fo-funk')?.value||'',
+    gemeinde: c.querySelector('.fo-gemeinde')?.value||'',
+    von: c.querySelector('.fo-von')?.value||'',
+    bis: c.querySelector('.fo-bis')?.value||''
+  }));
+}
+function renderFunkSonst(p) {
+  const c = document.getElementById('funk-sonst-container');
+  c.innerHTML = '';
+  (p.funkSonst||[]).forEach(f => c.appendChild(buildFunkSonstRow(f)));
+}
+function buildFunkSonstRow(f) {
+  const d = document.createElement('div');
+  d.className = 'card'; d.style.marginBottom='8px';
+  d.innerHTML = `<div class="g3">
+    <div><label>Funktion</label><input type="text" class="fs-funk" value="${f.funk||''}"></div>
+    <div><label>Gemeinde/Landkreis/Bezirk/Land/Bund</label><input type="text" class="fs-ebene" value="${f.ebene||''}"></div>
+    <div class="g2" style="margin:0"><div><label>am</label><input type="date" class="fs-von" value="${f.von||''}"></div><div><label>Beendigung am</label><input type="date" class="fs-bis" value="${f.bis||''}"></div></div>
+  </div><button class="btn-del" style="float:right;margin-top:-28px" onclick="this.closest('.card').remove()">✕</button>`;
+  return d;
+}
+function addFunkSonst() { document.getElementById('funk-sonst-container').appendChild(buildFunkSonstRow({})); }
+function collectFunkSonst() {
+  return [...document.querySelectorAll('#funk-sonst-container .card')].map(c => ({
+    funk: c.querySelector('.fs-funk')?.value||'',
+    ebene: c.querySelector('.fs-ebene')?.value||'',
+    von: c.querySelector('.fs-von')?.value||'',
+    bis: c.querySelector('.fs-bis')?.value||''
+  }));
+}
+
+// ===================== AUSZEICHNUNGEN =====================
+const AZ_FIELDS = ['az-25j','az-40j','az-steck','az-lfv-silber','az-lfv-gold','az-lfv-med','az-jfbay-silber','az-jfbay-gold','az-dfv-silber','az-dfv-gold','az-dfv-med','az-djf-silber','az-djf-gold'];
+function renderAuszeichn(p) {
+  const data = p.auszeichn||{};
+  AZ_FIELDS.forEach(id => { const el=document.getElementById(id); if(el) el.value=data[id.replace(/-/g,'_')]||''; });
+  const c = document.getElementById('az-sonst-container');
+  c.innerHTML = '';
+  (p.azSonst||[]).forEach(a => c.appendChild(buildAzSonstRow(a)));
+}
+function collectAuszeichn() {
+  const obj = {};
+  AZ_FIELDS.forEach(id => { const el=document.getElementById(id); if(el) obj[id.replace(/-/g,'_')]=el.value; });
+  return obj;
+}
+function buildAzSonstRow(a) {
+  const d = document.createElement('div');
+  d.className='card'; d.style.marginBottom='8px';
+  d.innerHTML=`<div class="g3">
+    <div><label>Bezeichnung</label><input type="text" class="az-bez" value="${a.bez||''}"></div>
+    <div><label>am</label><input type="date" class="az-datum" value="${a.datum||''}"></div>
+    <div><label>Bestätigung</label><input type="text" class="az-best" value="${a.best||''}"></div>
+  </div><button class="btn-del" style="float:right;margin-top:-28px" onclick="this.closest('.card').remove()">✕</button>`;
+  return d;
+}
+function addAzSonst() { document.getElementById('az-sonst-container').appendChild(buildAzSonstRow({})); }
+function collectAzSonst() {
+  return [...document.querySelectorAll('#az-sonst-container .card')].map(c=>({
+    bez:c.querySelector('.az-bez')?.value||'',datum:c.querySelector('.az-datum')?.value||'',best:c.querySelector('.az-best')?.value||''
+  }));
+}
+
+// ===================== LEISTUNGSABZEICHEN =====================
+function renderLP(p) {
+  const stufen = ['1','2','3','4','5','6'];
+  const thlStufen = ['THL 1','THL 2','THL 3','THL 3/1','THL 3/2','THL 3/3'];
+  renderLPTable('lp-wasser-body', p.lpWasser||stufen.map(s=>({stufe:s})), stufen);
+  renderLPTable('thl-body', p.thl||thlStufen.map(s=>({stufe:s})), thlStufen);
+}
+function renderLPTable(tbodyId, data, stufen) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  stufen.forEach(st => {
+    const row = data.find(r=>r.stufe===st)||{stufe:st};
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="td-stufe">${st}</span></td>
+      <td><input type="date" class="lp-datum" value="${row.datum||''}"></td>
+      <td><div class="ac-wrap"><input type="text" class="lp-fw" value="${row.fw||''}" autocomplete="off"></div></td>
+      <td><input type="text" class="lp-kbr" value="${row.kbr||''}"></td>`;
+    tbody.appendChild(tr);
+    setupTableAC(tr.querySelector('.lp-fw'), 'ausb_ort');
+  });
+}
+function collectLP(tbodyId) {
+  return [...document.querySelectorAll(`#${tbodyId} tr`)].map(tr => ({
+    stufe: tr.querySelector('.td-stufe')?.textContent||'',
+    datum: tr.querySelector('.lp-datum')?.value||'',
+    fw: tr.querySelector('.lp-fw')?.value||'',
+    kbr: tr.querySelector('.lp-kbr')?.value||''
+  }));
+}
+
+// ===================== JUGEND / WETTKAMPF =====================
+function renderJugend(p) {
+  renderDynTable('jugend-body', p.jugend||[], ['art','datum','ort','kbr'], ['Art (Autocomplete)','Prüfungsdatum','Prüfungsort / Feuerwehr','Kommandant/in']);
+  renderDynTable('wettkampf-body', p.wettkampf||[], ['art','datum','ort','best'], ['Art','Datum','Feuerwehr / Ort','Bestätigung']);
+}
+function addJugend() { addDynRow('jugend-body',['art','datum','ort','kbr'], {art:'jugend_art'}); }
+function addWettkampf() { addDynRow('wettkampf-body',['art','datum','ort','best'], {art:'wettkampf_art'}); }
+
+// ===================== AUSBILDUNG STANDORT =====================
+function renderAusbStandort(p) {
+  renderDynTable('ausb-standort-body', p.ausbStandort||[], ['art','datum','ort','fds'], ['Bezeichnung / Art','Datum Leistungsnachweis','Ort','Führungsdienstgrad / Bestätigung']);
+  document.querySelectorAll('#ausb-standort-body .f-art').forEach(inp => setupTableAC(inp,'ausb_art'));
+  document.querySelectorAll('#ausb-standort-body .f-ort').forEach(inp => setupTableAC(inp,'ausb_ort'));
+}
+function addAusbStandort() {
+  addDynRow('ausb-standort-body',['art','datum','ort','fds'],{art:'ausb_art',ort:'ausb_ort'});
+}
+
+// ===================== AUSBILDUNG LFS =====================
+function renderAusbLfs(p) {
+  renderLfsTable('ausb-lfs-body', p.ausbLfs||[]);
+}
+function renderLfsTable(tbodyId, data) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML='';
+  data.forEach(r => addLfsRow(r));
+}
+function addLfsRow(r) {
+  r = r||{};
+  const tbody = document.getElementById('ausb-lfs-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML=`
+    <td><div class="ac-wrap"><input type="text" class="f-art" value="${r.art||''}" autocomplete="off"></div></td>
+    <td><input type="date" class="f-von" value="${r.von||''}"></td>
+    <td><input type="date" class="f-bis" value="${r.bis||''}"></td>
+    <td><div class="ac-wrap"><input type="text" class="f-schule" value="${r.schule||''}" autocomplete="off"></div></td>
+    <td><input type="text" class="f-kdt" value="${r.kdt||''}"></td>
+    <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>`;
+  tbody.appendChild(tr);
+  setupTableAC(tr.querySelector('.f-art'),'lfs_art');
+  setupTableAC(tr.querySelector('.f-schule'),'lfs_schule');
+}
+function addAusbLfs() { addLfsRow({}); }
+
+// ===================== STANDORTSCHULUNG =====================
+function renderStandortschulung(p) {
+  renderDynTable('standortschulung-body', p.standortschulung||[], ['art','datum','ort','best'], ['Art','Datum','Feuerwehr / Ort','Bestätigung']);
+  document.querySelectorAll('#standortschulung-body .f-art').forEach(inp => setupTableAC(inp,'ausb_art'));
+}
+function addStandortschulung() { addDynRow('standortschulung-body',['art','datum','ort','best'],{art:'ausb_art',ort:'ausb_ort'}); }
+
+// ===================== G26 =====================
+function renderG26(p) {
+  renderDynTable('g26-body', p.g26||[], ['art','datum','naechste','kdt'], ['Art der Untersuchung','Datum','Nächste Untersuchung','Bestätigung / Beauftragter']);
+  renderDynTable('g26-sonst-body', p.g26Sonst||[], ['art','datum','naechste','kdt'], ['Art der Untersuchung','Datum','Nächste Untersuchung','Bestätigung']);
+  document.querySelectorAll('#g26-body .f-art').forEach(inp => setupTableAC(inp,'g26_art'));
+}
+function addG26() { addDynRow('g26-body',['art','datum','naechste','kdt'],{art:'g26_art'}); }
+function addG26Sonst() { addDynRow('g26-sonst-body',['art','datum','naechste','kdt'],{}); }
+
+// ===================== VERMERKE =====================
+function renderVermerke(p) {
+  const c = document.getElementById('vermerke-container');
+  c.innerHTML='';
+  (p.vermerke||[]).forEach(v => c.appendChild(buildVermerkRow(v)));
+}
+function buildVermerkRow(v) {
+  const d = document.createElement('div');
+  d.style.cssText='display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px;align-items:start';
+  d.innerHTML=`<input type="text" class="v-text" value="${v||''}"><button class="btn-del" onclick="this.closest('div').remove()">✕</button>`;
+  return d;
+}
+function addVermerk() { document.getElementById('vermerke-container').appendChild(buildVermerkRow('')); }
+function collectVermerke() { return [...document.querySelectorAll('#vermerke-container .v-text')].map(i=>i.value||'').filter(Boolean); }
+
+// ===================== GENERIC DYN TABLE =====================
+function renderDynTable(tbodyId, data, fields, labels) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML='';
+  data.forEach(r => _addDynRow(tbody, r, fields));
+}
+function addDynRow(tbodyId, fields, acMap) {
+  const tbody = document.getElementById(tbodyId);
+  const tr = _addDynRow(tbody, {}, fields);
+  fields.forEach(f => { if(acMap&&acMap[f]) { setupTableAC(tr.querySelector('.f-'+f), acMap[f]); } });
+}
+function _addDynRow(tbody, r, fields) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = fields.map(f => {
+    const isDate = f==='datum'||f==='von'||f==='bis'||f==='naechste';
+    return `<td>${isDate?`<input type="date" class="f-${f}" value="${r[f]||''}">`:`<div class="ac-wrap"><input type="text" class="f-${f}" value="${r[f]||''}" autocomplete="off"></div>`}</td>`;
+  }).join('') + `<td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>`;
+  tbody.appendChild(tr);
+  return tr;
+}
+function collectTableRows(tbodyId, fields) {
+  return [...document.querySelectorAll(`#${tbodyId} tr`)].map(tr => {
+    const obj = {};
+    fields.forEach(f => { obj[f] = tr.querySelector('.f-'+f)?.value||''; });
+    return obj;
+  }).filter(r => Object.values(r).some(v=>v));
+}
+
+// ===================== MODAL =====================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if(e.target===bg) bg.classList.remove('open'); });
+});
+
+// ===================== TOAST =====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ '+msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ===================== CSV EXPORT =====================
+function csvEscape(v) {
+  if(v===null||v===undefined) return '""';
+  v = String(v);
+  return '"'+v.replace(/"/g,'""')+'"';
+}
+function csvRow(arr) { return arr.map(csvEscape).join(';')+'\r\n'; }
+function downloadCSV(filename, content) {
+  const bom = '\uFEFF';
+  const blob = new Blob([bom+content], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function personLabel(p) { return [p.dienstgrad, p.name, p.vorname].filter(Boolean).join(' ') || p.id; }
+
+function exportCSV(type) {
+  const p = getP();
+
+  if (type === 'personal') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    let csv = csvRow(['Name','Vorname','Geburtsname','Geburtsdatum','Geburtsort','Mitglieds-Nr.','Feuerwehr','Führerschein']);
+    csv += csvRow([p.name,p.vorname,p.geburtsname,p.gebdat,p.geburtsort,p.mitglnr,p.feuerwehr,p.fuehrerschein]);
+    downloadCSV(`Dienstbuch_Personalien_${p.name}_${p.vorname}.csv`, csv);
   }
 
-  async function excelImportieren() {
-    const status = document.getElementById('excel-status');
-    status.className = 'status info';
-    status.textContent = 'Wird auf Server gespeichert...';
-    try {
-      const res = await fetch(`${SERVER}/webhook/excel-import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ daten: excelDaten })
+  if (type === 'befoerd') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    let csv = csvRow(['Person','Dienstgrad','Datum']);
+    const pl = personLabel(p);
+    const all = [...GRADES_LOWER,...GRADES_UPPER];
+    all.forEach(g => { if(p.befoerd&&p.befoerd[g.key]) csv+=csvRow([pl,g.label,p.befoerd[g.key]]); });
+    downloadCSV(`Dienstbuch_Befoerderungen_${p.name}.csv`, csv);
+  }
+
+  if (type === 'funk') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    let csv = csvRow(['Person','Funktion','am']);
+    const pl = personLabel(p);
+    FUNK_INNER.forEach(f => { if(p.funk&&p.funk[f.key]) csv+=csvRow([pl,f.label,p.funk[f.key]]); });
+    (p.funkOuter||[]).forEach(f => csv+=csvRow([pl,f.funk,f.von,'bis',f.bis,f.gemeinde]));
+    (p.funkSonst||[]).forEach(f => csv+=csvRow([pl,f.funk,f.von,'bis',f.bis,f.ebene]));
+    downloadCSV(`Dienstbuch_Funktionen_${p.name}.csv`, csv);
+  }
+
+  if (type === 'auszeichn') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    const pl = personLabel(p);
+    const az = p.auszeichn||{};
+    let csv = csvRow(['Person','Auszeichnung','Datum']);
+    const map = {az_25j:'25-jährige Dienstzeit',az_40j:'40-jährige Dienstzeit',az_steck:'Steckkreuz',az_lfv_silber:'LFV Ehrenkreuz Silber',az_lfv_gold:'LFV Ehrenkreuz Gold',az_lfv_med:'LFV Ehrenmedaille',az_jfbay_silber:'Ehrennadel JF Bayern Silber',az_jfbay_gold:'Ehrennadel JF Bayern Gold',az_dfv_silber:'DFV Ehrenkreuz Silber',az_dfv_gold:'DFV Ehrenkreuz Gold',az_dfv_med:'DFV Ehrenmedaille',az_djf_silber:'Ehrennadel DJF Silber',az_djf_gold:'Ehrennadel DJF Gold'};
+    Object.entries(map).forEach(([k,label]) => { if(az[k]) csv+=csvRow([pl,label,az[k]]); });
+    (p.azSonst||[]).forEach(a => csv+=csvRow([pl,a.bez,a.datum,a.best]));
+    downloadCSV(`Dienstbuch_Auszeichnungen_${p.name}.csv`, csv);
+  }
+
+  if (type === 'lp') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    const pl = personLabel(p);
+    let csv = csvRow(['Person','Art','Stufe','Datum','Feuerwehr','Kreisbrandrat']);
+    (p.lpWasser||[]).filter(r=>r.datum).forEach(r => csv+=csvRow([pl,'Leistungsabzeichen Wasser',r.stufe,r.datum,r.fw,r.kbr]));
+    (p.thl||[]).filter(r=>r.datum).forEach(r => csv+=csvRow([pl,'THL',r.stufe,r.datum,r.fw,r.kbr]));
+    downloadCSV(`Dienstbuch_Leistungsabzeichen_${p.name}.csv`, csv);
+  }
+
+  if (type === 'ausbildung') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    const pl = personLabel(p);
+    let csv = csvRow(['Person','Kategorie','Art / Bezeichnung','Datum von','Datum bis','Ort / Schule','Bestätigung / FDS']);
+    (p.ausbStandort||[]).forEach(r => csv+=csvRow([pl,'Standort FwDV2',r.art,r.datum,'',r.ort,r.fds]));
+    (p.ausbLfs||[]).forEach(r => csv+=csvRow([pl,'Landesfeuerwehrschule',r.art,r.von,r.bis,r.schule,r.kdt]));
+    (p.standortschulung||[]).forEach(r => csv+=csvRow([pl,'Standortschulung',r.art,r.datum,'',r.ort,r.best]));
+    downloadCSV(`Dienstbuch_Ausbildung_${p.name}.csv`, csv);
+  }
+
+  if (type === 'g26') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    const pl = personLabel(p);
+    let csv = csvRow(['Person','Art','Typ','Datum','Nächste Untersuchung','Bestätigung']);
+    (p.g26||[]).forEach(r => csv+=csvRow([pl,r.art,'G26',r.datum,r.naechste,r.kdt]));
+    (p.g26Sonst||[]).forEach(r => csv+=csvRow([pl,r.art,'Sonstig',r.datum,r.naechste,r.kdt]));
+    downloadCSV(`Dienstbuch_G26_${p.name}.csv`, csv);
+  }
+
+  if (type === 'all-person') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    let csv = '';
+    // Personalien
+    csv += '# PERSONALIEN\r\n';
+    csv += csvRow(['Name','Vorname','Geburtsdatum','Geburtsort','Mitglieds-Nr.','Feuerwehr','Führerschein']);
+    csv += csvRow([p.name,p.vorname,p.gebdat,p.geburtsort,p.mitglnr,p.feuerwehr,p.fuehrerschein]);
+    csv += '\r\n# BEFÖRDERUNGEN\r\n';
+    csv += csvRow(['Dienstgrad','Datum']);
+    [...GRADES_LOWER,...GRADES_UPPER].forEach(g=>{if(p.befoerd&&p.befoerd[g.key])csv+=csvRow([g.label,p.befoerd[g.key]]);});
+    csv += '\r\n# FUNKTIONEN\r\n';
+    csv += csvRow(['Funktion','am']);
+    FUNK_INNER.forEach(f=>{if(p.funk&&p.funk[f.key])csv+=csvRow([f.label,p.funk[f.key]]);});
+    csv += '\r\n# LEISTUNGSABZEICHEN WASSER\r\n';
+    csv += csvRow(['Stufe','Datum','Feuerwehr','KBR']);
+    (p.lpWasser||[]).filter(r=>r.datum).forEach(r=>csv+=csvRow([r.stufe,r.datum,r.fw,r.kbr]));
+    csv += '\r\n# THL\r\n';
+    csv += csvRow(['Stufe','Datum','Feuerwehr','KBR']);
+    (p.thl||[]).filter(r=>r.datum).forEach(r=>csv+=csvRow([r.stufe,r.datum,r.fw,r.kbr]));
+    csv += '\r\n# AUSBILDUNG STANDORT\r\n';
+    csv += csvRow(['Art','Datum','Ort','Führungsdienstgrad']);
+    (p.ausbStandort||[]).forEach(r=>csv+=csvRow([r.art,r.datum,r.ort,r.fds]));
+    csv += '\r\n# AUSBILDUNG LFS\r\n';
+    csv += csvRow(['Art','von','bis','Schule','Kommandant']);
+    (p.ausbLfs||[]).forEach(r=>csv+=csvRow([r.art,r.von,r.bis,r.schule,r.kdt]));
+    csv += '\r\n# G26\r\n';
+    csv += csvRow(['Art','Datum','Nächste Untersuchung','Bestätigung']);
+    (p.g26||[]).forEach(r=>csv+=csvRow([r.art,r.datum,r.naechste,r.kdt]));
+    downloadCSV(`Dienstbuch_Komplett_${p.name}_${p.vorname}.csv`, csv);
+  }
+
+  if (type === 'all-persons-ausbildung') {
+    let csv = csvRow(['Name','Vorname','Feuerwehr','Kategorie','Art','Datum von','Datum bis','Ort / Schule','Bestätigung']);
+    DB.persons.forEach(per => {
+      (per.ausbStandort||[]).forEach(r=>csv+=csvRow([per.name,per.vorname,per.feuerwehr,'Standort FwDV2',r.art,r.datum,'',r.ort,r.fds]));
+      (per.ausbLfs||[]).forEach(r=>csv+=csvRow([per.name,per.vorname,per.feuerwehr,'LFS',r.art,r.von,r.bis,r.schule,r.kdt]));
+      (per.standortschulung||[]).forEach(r=>csv+=csvRow([per.name,per.vorname,per.feuerwehr,'Standortschulung',r.art,r.datum,'',r.ort,r.best]));
+    });
+    downloadCSV('Dienstbuch_ALLE_Ausbildung.csv', csv);
+  }
+
+  if (type === 'all-persons-befoerd') {
+    let csv = csvRow(['Name','Vorname','Feuerwehr','Dienstgrad','Datum']);
+    DB.persons.forEach(per => {
+      [...GRADES_LOWER,...GRADES_UPPER].forEach(g=>{
+        if(per.befoerd&&per.befoerd[g.key]) csv+=csvRow([per.name,per.vorname,per.feuerwehr,g.label,per.befoerd[g.key]]);
       });
-      const data = await res.json();
-      if (data.erfolg) {
-        status.className = 'status success';
-        status.textContent = `✅ Dauerhaft gespeichert: ${data.personen} Personen, ${data.lehrgaenge} Lehrgänge, ${data.lp} Leistungsprüfungen`;
-        ladePersonen();
-      } else { throw new Error(data.fehler); }
-    } catch(e) {
-      status.className = 'status error';
-      status.textContent = '❌ Fehler: ' + e.message;
-    }
+    });
+    downloadCSV('Dienstbuch_ALLE_Befoerderungen.csv', csv);
   }
 
-  async function korrektorenLaden(filter = 'offen') {
-    const status = document.getElementById('korrekturen-status');
-    const liste = document.getElementById('korrekturen-liste');
-    status.className = 'status info';
-    status.textContent = 'Wird geladen...';
-    liste.innerHTML = '';
-    try {
-      const res = await fetch(`${SERVER}/webhook/korrekturen?filter=${filter}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (!data.erfolg) throw new Error(data.fehler);
-      status.className = 'status success';
-      status.textContent = `✅ ${data.gesamt} Korrektur(en) gefunden`;
-      if (!data.offene_korrekturen || data.offene_korrekturen.length === 0) {
-        liste.innerHTML = '<p style="color:#2a7a2a; text-align:center; padding:16px;">✅ Keine offenen Korrekturen!</p>';
-        return;
-      }
-      liste.innerHTML = data.offene_korrekturen.map(k => `
-        <div class="differenz-item ${k.status}">
-          <div class="differenz-info">
-            <strong>${k.nachname} ${k.vorname} — ${k.bezeichnung}</strong>
-            <small>${k.datum||''} · ${k.aktion}${k.unsicher ? ' · ⚠️ unsicher' : ''}</small>
-          </div>
-          <span class="badge orange">${k.typ}</span>
-        </div>`).join('');
-    } catch(e) {
-      status.className = 'status error';
-      status.textContent = '❌ Fehler: ' + e.message;
-    }
+  if (type === 'all-persons-all') {
+    let csv = csvRow(['Name','Vorname','Feuerwehr','Mitglieds-Nr.','Abschnitt','Art/Bezeichnung','Datum von','Datum bis','Ort','Bestätigung/Sonstiges']);
+    DB.persons.forEach(per => {
+      const n=per.name,v=per.vorname,fw=per.feuerwehr,nr=per.mitglnr;
+      [...GRADES_LOWER,...GRADES_UPPER].forEach(g=>{if(per.befoerd&&per.befoerd[g.key])csv+=csvRow([n,v,fw,nr,'Beförderung',g.label,per.befoerd[g.key],'','','']);});
+      FUNK_INNER.forEach(f=>{if(per.funk&&per.funk[f.key])csv+=csvRow([n,v,fw,nr,'Funktion',f.label,per.funk[f.key],'','','']);});
+      (per.ausbStandort||[]).forEach(r=>csv+=csvRow([n,v,fw,nr,'Ausbildung Standort',r.art,r.datum,'',r.ort,r.fds]));
+      (per.ausbLfs||[]).forEach(r=>csv+=csvRow([n,v,fw,nr,'Ausbildung LFS',r.art,r.von,r.bis,r.schule,r.kdt]));
+      (per.lpWasser||[]).filter(r=>r.datum).forEach(r=>csv+=csvRow([n,v,fw,nr,'Leistungsabzeichen Wasser','Stufe '+r.stufe,r.datum,'',r.fw,r.kbr]));
+      (per.thl||[]).filter(r=>r.datum).forEach(r=>csv+=csvRow([n,v,fw,nr,'THL',r.stufe,r.datum,'',r.fw,r.kbr]));
+      (per.g26||[]).forEach(r=>csv+=csvRow([n,v,fw,nr,'G26',r.art,r.datum,r.naechste,'',r.kdt]));
+    });
+    downloadCSV('Dienstbuch_ALLE_komplett.csv', csv);
   }
 
-  document.getElementById('passwort').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+  if (type === 'current') {
+    if (!p) { alert('Bitte Person auswählen.'); return; }
+    exportCSV('all-person');
+    return;
+  }
+
+  showToast('CSV wird heruntergeladen...');
+}
+
+// ===================== INIT =====================
+setupAC('p-feuerwehr','p-feuerwehr','dd-p-feuerwehr');
+refreshPersonSel();
+
+// If there's one person, preselect
+if (DB.persons.length === 1) {
+  document.getElementById('person-sel').value = DB.persons[0].id;
+  loadPerson();
+}
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>

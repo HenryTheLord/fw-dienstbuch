@@ -231,6 +231,7 @@ textarea{resize:vertical;min-height:60px}
   <div class="sidebar-section">
     <div class="sidebar-label">Export</div>
     <button class="nav-btn" data-sec="s-export">CSV Export</button>
+    <button class="nav-btn" data-sec="s-admin">⚙ Admin / Backup</button>
   </div>
 </nav>
 
@@ -595,6 +596,78 @@ textarea{resize:vertical;min-height:60px}
       <button class="export-btn" onclick="exportCSV('all-persons-befoerd')">⬇️ Alle — Beförderungen</button>
       <button class="export-btn" onclick="exportCSV('all-persons-all')">⬇️ Alle Personen, alles</button>
     </div>
+  </div>
+</div>
+
+<!-- ADMIN / BACKUP -->
+<div class="section" id="s-admin">
+  <div class="page-title">⚙ Admin &amp; Backup</div>
+  <div class="page-sub">JSON-Export und -Import aller Daten — zur Sicherung oder Übertragung auf ein anderes Gerät</div>
+
+  <div class="card">
+    <div class="card-title">JSON Export — Datensicherung</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:1rem;line-height:1.6">
+      Exportiert <strong>alle Personen und alle Daten</strong> als eine einzige JSON-Datei.
+      Diese Datei kann als Backup gespeichert oder auf einem anderen Gerät wieder importiert werden.
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="exportJSON('all')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l-4-4h2.5V4h3v4H12L8 12z"/><path d="M2 13h12v1.5H2z"/></svg>
+        Alle Personen exportieren
+      </button>
+      <button class="btn btn-secondary" onclick="exportJSON('current')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l-4-4h2.5V4h3v4H12L8 12z"/><path d="M2 13h12v1.5H2z"/></svg>
+        Nur aktuelle Person exportieren
+      </button>
+    </div>
+    <div id="export-preview" style="display:none;margin-top:1rem">
+      <label style="font-size:11px;font-weight:600;color:var(--text-3);display:block;margin-bottom:4px">VORSCHAU (erste 500 Zeichen)</label>
+      <pre id="export-preview-text" style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;overflow-x:auto;white-space:pre-wrap;color:var(--text-2);max-height:140px;overflow-y:auto"></pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">JSON Import — Daten wiederherstellen</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:.75rem;line-height:1.6">
+      Importiert eine zuvor exportierte JSON-Datei. Wähle den Import-Modus:
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">
+      <label class="cb-row" style="align-items:flex-start;gap:10px;cursor:pointer">
+        <input type="radio" name="import-mode" value="merge" checked style="margin-top:3px;accent-color:var(--red)">
+        <span style="font-size:13px"><strong>Zusammenführen</strong> — neue Personen aus der Datei werden hinzugefügt, bestehende Personen (gleiche ID) werden aktualisiert</span>
+      </label>
+      <label class="cb-row" style="align-items:flex-start;gap:10px;cursor:pointer">
+        <input type="radio" name="import-mode" value="replace" style="margin-top:3px;accent-color:var(--red)">
+        <span style="font-size:13px"><strong style="color:var(--red)">Ersetzen</strong> — alle bestehenden Daten werden gelöscht und durch die importierte Datei ersetzt <em>(Vorsicht!)</em></span>
+      </label>
+    </div>
+
+    <div id="import-dropzone" style="border:2px dashed var(--border-dark);border-radius:var(--radius-lg);padding:2rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--off-white)"
+      onclick="document.getElementById('import-file-input').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--red)';this.style.background='var(--red-light)'"
+      ondragleave="this.style.borderColor='var(--border-dark)';this.style.background='var(--off-white)'"
+      ondrop="handleDrop(event)">
+      <div style="font-size:28px;margin-bottom:.5rem">📂</div>
+      <div style="font-size:14px;font-weight:500;color:var(--text-2)">JSON-Datei hier ablegen</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:.25rem">oder klicken zum Auswählen</div>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleFileSelect(event)">
+    </div>
+
+    <div id="import-preview" style="display:none;margin-top:1rem">
+      <div id="import-summary" style="background:var(--info-bg);border:1px solid #AED6F1;border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:.75rem;font-size:13px;color:var(--info)"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" id="import-confirm-btn" onclick="confirmImport()">Import bestätigen</button>
+        <button class="btn btn-secondary" onclick="cancelImport()">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:#F1948A">
+    <div class="card-title" style="color:var(--red)">Gefahrenzone</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:.75rem;line-height:1.6">
+      Löscht <strong>alle gespeicherten Daten</strong> unwiderruflich aus dem Browser. Vorher unbedingt einen JSON-Export erstellen!
+    </p>
+    <button class="btn btn-danger" onclick="clearAllData()">🗑 Alle Daten löschen</button>
   </div>
 </div>
 
@@ -1447,7 +1520,159 @@ function exportCSV(type) {
   showToast('CSV wird heruntergeladen...');
 }
 
-// ===================== INIT =====================
+// ===================== JSON EXPORT =====================
+let _pendingImportData = null;
+
+function exportJSON(mode) {
+  const p = getP();
+  let data, filename;
+
+  if (mode === 'current') {
+    if (!p) { alert('Bitte zuerst eine Person auswählen.'); return; }
+    data = { version: 3, exportedAt: new Date().toISOString(), persons: [p] };
+    filename = `Dienstbuch_${p.name||'Person'}_${p.vorname||''}_${new Date().toISOString().slice(0,10)}.json`;
+  } else {
+    data = { version: 3, exportedAt: new Date().toISOString(), persons: DB.persons };
+    filename = `Dienstbuch_ALLE_${new Date().toISOString().slice(0,10)}.json`;
+  }
+
+  const json = JSON.stringify(data, null, 2);
+
+  // Show preview
+  const preview = document.getElementById('export-preview');
+  document.getElementById('export-preview-text').textContent = json.slice(0, 500) + (json.length > 500 ? '\n...' : '');
+  preview.style.display = 'block';
+
+  // Download
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`JSON exportiert: ${data.persons.length} Person(en)`);
+}
+
+// ===================== JSON IMPORT =====================
+function handleDrop(event) {
+  event.preventDefault();
+  const dz = document.getElementById('import-dropzone');
+  dz.style.borderColor = 'var(--border-dark)';
+  dz.style.background = 'var(--off-white)';
+  const file = event.dataTransfer.files[0];
+  if (file) readImportFile(file);
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) readImportFile(file);
+  event.target.value = ''; // reset so same file can be re-selected
+}
+
+function readImportFile(file) {
+  if (!file.name.endsWith('.json')) {
+    alert('Bitte eine JSON-Datei auswählen (.json).');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      validateAndPreviewImport(data);
+    } catch (err) {
+      alert('Fehler beim Lesen der Datei: Ungültiges JSON.\n\n' + err.message);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function validateAndPreviewImport(data) {
+  // Accept both formats: {persons:[...]} or raw array
+  let persons = null;
+  if (Array.isArray(data)) {
+    persons = data;
+  } else if (data && Array.isArray(data.persons)) {
+    persons = data.persons;
+  }
+  if (!persons) {
+    alert('Ungültiges Format: Datei enthält keine Personenliste.');
+    return;
+  }
+  if (persons.length === 0) {
+    alert('Die Datei enthält keine Personen.');
+    return;
+  }
+  _pendingImportData = persons;
+
+  const mode = document.querySelector('input[name="import-mode"]:checked').value;
+  const existingIds = new Set(DB.persons.map(p => p.id));
+  const newCount = persons.filter(p => !existingIds.has(p.id)).length;
+  const updateCount = persons.filter(p => existingIds.has(p.id)).length;
+
+  const summary = document.getElementById('import-summary');
+  const names = persons.slice(0,5).map(p => [p.name, p.vorname].filter(Boolean).join(' ') || '(unbenannt)').join(', ');
+  const more = persons.length > 5 ? ` ... +${persons.length - 5} weitere` : '';
+
+  if (mode === 'replace') {
+    summary.innerHTML = `<strong>Ersetzen:</strong> Alle bestehenden Daten werden gelöscht. ${persons.length} Person(en) werden importiert.<br><small>${names}${more}</small>`;
+    summary.style.background = '#FADBD8'; summary.style.borderColor = '#F1948A'; summary.style.color = '#922B21';
+  } else {
+    summary.innerHTML = `<strong>Zusammenführen:</strong> ${newCount} neue Person(en) werden hinzugefügt, ${updateCount} bestehende werden aktualisiert.<br><small>${names}${more}</small>`;
+    summary.style.background = 'var(--info-bg)'; summary.style.borderColor = '#AED6F1'; summary.style.color = 'var(--info)';
+  }
+
+  document.getElementById('import-preview').style.display = 'block';
+  document.getElementById('import-dropzone').style.borderColor = 'var(--success)';
+}
+
+function confirmImport() {
+  if (!_pendingImportData) return;
+  const mode = document.querySelector('input[name="import-mode"]:checked').value;
+  const persons = _pendingImportData;
+
+  if (mode === 'replace') {
+    if (!confirm(`⚠️ ACHTUNG: Alle bestehenden Daten werden gelöscht!\n\n${DB.persons.length} Person(en) gehen verloren.\n${persons.length} Person(en) werden importiert.\n\nFortfahren?`)) return;
+    DB.persons = persons;
+  } else {
+    // merge: update existing by id, add new
+    const existingMap = {};
+    DB.persons.forEach(p => existingMap[p.id] = p);
+    persons.forEach(p => existingMap[p.id] = p); // overwrite or add
+    DB.persons = Object.values(existingMap);
+  }
+
+  saveDB();
+  cancelImport();
+  refreshPersonSel();
+  currentId = null;
+  document.getElementById('person-sel').value = '';
+  document.getElementById('av').textContent = '?';
+  document.getElementById('person-info').textContent = '';
+  showToast(`Import erfolgreich: ${persons.length} Person(en)`);
+}
+
+function cancelImport() {
+  _pendingImportData = null;
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-dropzone').style.borderColor = 'var(--border-dark)';
+  document.getElementById('import-dropzone').style.background = 'var(--off-white)';
+  document.getElementById('import-file-input').value = '';
+}
+
+function clearAllData() {
+  if (!confirm(`⚠️ ALLE Daten löschen?\n\n${DB.persons.length} Person(en) werden unwiderruflich gelöscht.\n\nVorher bitte JSON-Export erstellen!`)) return;
+  if (!confirm('Wirklich sicher? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+  DB = { persons: [] };
+  saveDB();
+  currentId = null;
+  refreshPersonSel();
+  document.getElementById('person-sel').value = '';
+  document.getElementById('av').textContent = '?';
+  document.getElementById('person-info').textContent = '';
+  showToast('Alle Daten gelöscht.');
+}
+
+
 setupAC('p-feuerwehr','p-feuerwehr','dd-p-feuerwehr');
 refreshPersonSel();
 

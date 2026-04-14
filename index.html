@@ -156,7 +156,26 @@ textarea{resize:vertical;min-height:60px}
 .empty{text-align:center;padding:2.5rem 1rem;color:var(--text-3);font-size:13px}
 .empty svg{width:32px;height:32px;margin:0 auto .75rem;display:block;opacity:.4}
 
-/* ---- EXPORT ---- */
+/* ---- VALIDATION TABLE ---- */
+.val-table{width:100%;border-collapse:collapse;font-size:12px}
+.val-table th{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);background:var(--off-white)}
+.val-table td{padding:5px 7px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+.val-row.val-changed td{background:#FFFBF0}
+.val-row.val-changed td:first-child{border-left:3px solid #E67E22}
+.val-row.val-done td{background:var(--success-bg)}
+.val-row.val-done td:first-child{border-left:3px solid var(--success)}
+.val-field{font-size:11px;color:var(--text-2);white-space:nowrap}
+.val-new{min-width:160px}
+.val-old{font-size:12px;color:var(--text-3);min-width:120px}
+.val-input{width:100%;border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:12px;font-family:inherit;background:#fff;color:var(--text)}
+.val-input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 2px rgba(192,57,43,.1)}
+.val-changed .val-input{border-color:#E67E22;background:#FFFBF0}
+.val-btn{border:none;border-radius:4px;padding:3px 9px;font-size:13px;cursor:pointer;font-weight:600;margin-right:3px}
+.val-accept{background:var(--success-bg);color:var(--success)}
+.val-accept:hover{background:#A9DFBF}
+.val-reject{background:var(--red-light);color:var(--red-dark)}
+.val-reject:hover{background:#F1948A;color:#fff}
+
 .export-section{background:var(--info-bg);border:1px solid #AED6F1;border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
 .export-section h3{font-size:13px;font-weight:600;color:var(--info);margin-bottom:.5rem}
 .export-section p{font-size:12px;color:#1A5276;margin-bottom:.75rem}
@@ -232,6 +251,11 @@ textarea{resize:vertical;min-height:60px}
     <div class="sidebar-label">Export</div>
     <button class="nav-btn" data-sec="s-export">CSV Export</button>
     <button class="nav-btn" data-sec="s-admin">⚙ Admin / Backup</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Claude-Erfassung</div>
+    <button class="nav-btn" data-sec="s-claude-prompt">📋 Prompt generieren</button>
+    <button class="nav-btn" data-sec="s-validierung">✅ Validierung</button>
   </div>
 </nav>
 
@@ -668,6 +692,97 @@ textarea{resize:vertical;min-height:60px}
       Löscht <strong>alle gespeicherten Daten</strong> unwiderruflich aus dem Browser. Vorher unbedingt einen JSON-Export erstellen!
     </p>
     <button class="btn btn-danger" onclick="clearAllData()">🗑 Alle Daten löschen</button>
+  </div>
+</div>
+
+<!-- CLAUDE PROMPT -->
+<div class="section" id="s-claude-prompt">
+  <div class="page-title">📋 Prompt für Claude-App generieren</div>
+  <div class="page-sub">Lies das Dienstbuch laut vor — Claude extrahiert die Daten und gibt importfertiges JSON zurück.</div>
+
+  <div class="card">
+    <div class="card-title">Schritt 1 — Abschnitte wählen</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:.75rem">Welche Seiten des Dienstbuchs willst du erfassen?</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="prompt-section-checks">
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="personal" checked><span>Personalien (S. 1)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="mitglied" checked><span>Mitgliedschaft (S. 2–4)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="befoerd" checked><span>Beförderungen (S. 6–7)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="funk" checked><span>Funktionen (S. 7–11)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="auszeichn"><span>Auszeichnungen (S. 12–15)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="lp" checked><span>Leistungsabzeichen Wasser + THL (S. 16–17)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="jugend"><span>Jugend &amp; Wettbewerbe (S. 18–21)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="ausbStandort" checked><span>Ausbildung Standort / FwDV 2 (S. 22–23)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="ausbLfs" checked><span>Ausbildung LFS (S. 24–27)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="standortschulung" checked><span>Standortschulung (S. 28–29)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="g26" checked><span>G26 / Untersuchungen (S. 30–31)</span></label>
+      <label class="cb-row"><input type="checkbox" class="ps-check" value="vermerke"><span>Besondere Vermerke (S. 32)</span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Schritt 2 — Prompt kopieren &amp; in Claude-App einfügen</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:.75rem;line-height:1.6">
+      Kopiere den Prompt unten, füge ihn in die Claude-App ein, und lies dann das Dienstbuch laut vor (oder tippe die Inhalte ab). Claude antwortet mit einem JSON-Block den du direkt importieren kannst.
+    </p>
+    <button class="btn btn-primary" onclick="generatePrompt()" style="margin-bottom:.75rem">⚙ Prompt generieren</button>
+    <div id="prompt-output" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <label style="font-size:11px;font-weight:600;color:var(--text-3)">PROMPT — in Claude-App einfügen</label>
+        <button class="btn btn-secondary" style="padding:4px 12px;font-size:12px" onclick="copyPrompt()">📋 Kopieren</button>
+      </div>
+      <pre id="prompt-text" style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.6;background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto;color:var(--text)"></pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Schritt 3 — Claude-Antwort (JSON) importieren</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:.75rem;line-height:1.6">
+      Kopiere den JSON-Block aus der Claude-Antwort und füge ihn hier ein. Danach kannst du im Validierungs-Reiter alles prüfen.
+    </p>
+    <textarea id="claude-response-input" placeholder='Hier den JSON-Block aus der Claude-Antwort einfügen, z.B.:
+[{ "name": "Mustermann", "vorname": "Max", ... }]
+
+oder:
+
+{ "persons": [...] }' style="font-family:IBM Plex Mono,monospace;font-size:12px;min-height:120px"></textarea>
+    <div style="display:flex;gap:8px;margin-top:.75rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="parseClaudeResponse()">📥 JSON einlesen &amp; zur Validierung</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('claude-response-input').value=''">Leeren</button>
+    </div>
+    <div id="parse-error" style="display:none;margin-top:.5rem;padding:.5rem .75rem;background:var(--red-light);border:1px solid #F1948A;border-radius:var(--radius);font-size:12px;color:var(--red-dark)"></div>
+  </div>
+</div>
+
+<!-- VALIDIERUNG -->
+<div class="section" id="s-validierung">
+  <div class="page-title">✅ Validierung importierter Daten</div>
+  <div class="page-sub">Vergleiche die eingelesenen Daten mit dem Original und bestätige oder korrigiere jeden Eintrag.</div>
+
+  <div class="card" id="val-empty-state">
+    <div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Noch keine Daten zur Validierung. Bitte erst im Reiter <strong>Prompt generieren</strong> einen JSON-Import durchführen.
+    </div>
+  </div>
+
+  <div id="val-content" style="display:none">
+    <div class="card" style="margin-bottom:.75rem">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:11px;font-weight:600;color:var(--text-3);display:block;margin-bottom:4px">PERSON AUSWÄHLEN</label>
+          <select id="val-person-sel" onchange="loadValidation()" style="width:100%"></select>
+        </div>
+        <div id="val-progress-wrap" style="font-size:13px;color:var(--text-2)"></div>
+      </div>
+    </div>
+
+    <div id="val-sections"></div>
+
+    <div class="btn-row" style="margin-top:1rem">
+      <button class="btn btn-secondary" onclick="valRejectAll()">✗ Alle ablehnen</button>
+      <button class="btn btn-secondary" onclick="valAcceptAll()">✓ Alle akzeptieren</button>
+      <button class="btn btn-primary" onclick="commitValidation()">💾 Validierte Daten speichern</button>
+    </div>
   </div>
 </div>
 
@@ -1762,7 +1877,494 @@ function clearAllData() {
 }
 
 
-setupAC('p-feuerwehr','p-feuerwehr','dd-p-feuerwehr');
+// ===================== CLAUDE PROMPT GENERATOR =====================
+
+const PROMPT_SCHEMA = `Du bist ein Assistent zum Digitalisieren von Feuerwehr-Dienstbüchern (Bayern).
+Ich lese dir jetzt Einträge aus einem Feuerwehr-Dienstbuch vor. Extrahiere alle genannten Daten und antworte NUR mit einem gültigen JSON-Block (kein Fließtext davor oder danach, keine Markdown-Codeblöcke).
+
+Das JSON muss exakt diesem Schema entsprechen — fehlende Felder als leerer String "":
+
+{
+  "persons": [
+    {
+      "id": "",
+      "name": "",
+      "vorname": "",
+      "geburtsname": "",
+      "gebdat": "",
+      "geburtsort": "",
+      "mitglnr": "",
+      "feuerwehr": "",
+      "fuehrerschein": "",
+      "dienstgrad": "",
+SECTIONS_PLACEHOLDER
+    }
+  ]
+}
+
+Regeln:
+- Datumsformat immer TT.MM.JJJJ (z.B. 17.03.2018)
+- Wenn ein Datum nicht genannt wird: leerer String ""
+- Arrays bei denen nichts erwähnt wird: leeres Array []
+- Schreibweise genau wie vorgelesen, keine Korrekturen
+- Falls mehrere Personen genannt werden, erzeuge mehrere Objekte im persons-Array
+- Antworte AUSSCHLIESSLICH mit dem JSON, kein einziges Wort davor oder danach`;
+
+const SECTION_SCHEMAS = {
+  mitglied: `      "mitgliedschaft": [
+        { "ff": true/false, "wf": true/false, "fw": "", "datum": "", "aff": true/false, "awf": true/false, "afw": "", "adatum": "", "wegen": "" }
+      ],`,
+  befoerd: `      "befoerd": {
+        "fa": "", "fm": "", "ofm": "", "hfm": "", "lm": "", "olm": "", "hlm": "", "bm": "", "obm": "", "hbm": ""
+      },`,
+  funk: `      "funk": { "grufue": "", "zugfue": "", "stv_kdt": "", "kdt": "" },
+      "funkOuter": [
+        { "funk": "", "gemeinde": "", "von": "", "bis": "" }
+      ],
+      "funkSonst": [
+        { "funk": "", "ebene": "", "von": "", "bis": "" }
+      ],`,
+  auszeichn: `      "auszeichn": {
+        "az_25j": "", "az_40j": "", "az_steck": "",
+        "az_lfv_silber": "", "az_lfv_gold": "", "az_lfv_med": "",
+        "az_jfbay_silber": "", "az_jfbay_gold": "",
+        "az_dfv_silber": "", "az_dfv_gold": "", "az_dfv_med": "",
+        "az_djf_silber": "", "az_djf_gold": ""
+      },
+      "azSonst": [{ "bez": "", "datum": "", "best": "" }],`,
+  lp: `      "lpWasser": [
+        { "stufe": "1", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "2", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "3", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "4", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "5", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "6", "datum": "", "fw": "", "kbr": "" }
+      ],
+      "thl": [
+        { "stufe": "THL 1", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "THL 2", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "THL 3", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "THL 3/1", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "THL 3/2", "datum": "", "fw": "", "kbr": "" },
+        { "stufe": "THL 3/3", "datum": "", "fw": "", "kbr": "" }
+      ],`,
+  jugend: `      "jugend": [
+        { "art": "", "datum": "", "ort": "", "kbr": "" }
+      ],
+      "wettkampf": [
+        { "art": "", "datum": "", "ort": "", "best": "" }
+      ],`,
+  ausbStandort: `      "ausbStandort": [
+        { "art": "", "datum": "", "ort": "", "fds": "" }
+      ],`,
+  ausbLfs: `      "ausbLfs": [
+        { "art": "", "von": "", "bis": "", "schule": "", "kdt": "" }
+      ],`,
+  standortschulung: `      "standortschulung": [
+        { "art": "", "datum": "", "ort": "", "best": "" }
+      ],`,
+  g26: `      "g26": [
+        { "art": "", "datum": "", "naechste": "", "kdt": "" }
+      ],
+      "g26Sonst": [
+        { "art": "", "datum": "", "naechste": "", "kdt": "" }
+      ],`,
+  vermerke: `      "vermerke": [""],`,
+};
+
+function generatePrompt() {
+  const checked = [...document.querySelectorAll('.ps-check:checked')].map(cb => cb.value);
+  let schemaParts = '';
+  // personal is always included in base schema
+  if (checked.includes('mitglied')) schemaParts += SECTION_SCHEMAS.mitglied + '\n';
+  if (checked.includes('befoerd')) schemaParts += SECTION_SCHEMAS.befoerd + '\n';
+  if (checked.includes('funk')) schemaParts += SECTION_SCHEMAS.funk + '\n';
+  if (checked.includes('auszeichn')) schemaParts += SECTION_SCHEMAS.auszeichn + '\n';
+  if (checked.includes('lp')) schemaParts += SECTION_SCHEMAS.lp + '\n';
+  if (checked.includes('jugend')) schemaParts += SECTION_SCHEMAS.jugend + '\n';
+  if (checked.includes('ausbStandort')) schemaParts += SECTION_SCHEMAS.ausbStandort + '\n';
+  if (checked.includes('ausbLfs')) schemaParts += SECTION_SCHEMAS.ausbLfs + '\n';
+  if (checked.includes('standortschulung')) schemaParts += SECTION_SCHEMAS.standortschulung + '\n';
+  if (checked.includes('g26')) schemaParts += SECTION_SCHEMAS.g26 + '\n';
+  if (checked.includes('vermerke')) schemaParts += SECTION_SCHEMAS.vermerke + '\n';
+
+  const prompt = PROMPT_SCHEMA.replace('SECTIONS_PLACEHOLDER', schemaParts.trimEnd());
+
+  document.getElementById('prompt-text').textContent = prompt;
+  document.getElementById('prompt-output').style.display = 'block';
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Prompt kopiert ✓'));
+}
+
+// ===================== PARSE CLAUDE RESPONSE =====================
+
+let _valData = []; // persons from Claude to validate
+
+function parseClaudeResponse() {
+  const raw = document.getElementById('claude-response-input').value.trim();
+  const errEl = document.getElementById('parse-error');
+  errEl.style.display = 'none';
+
+  if (!raw) { showParseError('Bitte zuerst den JSON-Block einfügen.'); return; }
+
+  // Strip markdown code fences if present
+  let clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+
+  let parsed;
+  try { parsed = JSON.parse(clean); }
+  catch(e) {
+    // Try extracting first JSON object/array from mixed text
+    const objMatch = clean.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+    if (objMatch) {
+      try { parsed = JSON.parse(objMatch[1]); }
+      catch(e2) { showParseError('Ungültiges JSON: ' + e.message); return; }
+    } else { showParseError('Kein gültiger JSON-Block gefunden. Stelle sicher dass Claude nur JSON antwortet.'); return; }
+  }
+
+  // Normalize to array of persons
+  let persons;
+  if (Array.isArray(parsed)) persons = parsed;
+  else if (parsed.persons && Array.isArray(parsed.persons)) persons = parsed.persons;
+  else if (parsed.name || parsed.vorname) persons = [parsed];
+  else { showParseError('JSON hat unbekanntes Format — erwartet { persons: [...] } oder [...].'); return; }
+
+  if (!persons.length) { showParseError('JSON enthält keine Personen.'); return; }
+
+  // Assign temp IDs if missing
+  persons.forEach(p => { if (!p.id) p.id = uid(); });
+
+  _valData = persons;
+  buildValidationUI(persons);
+  // Switch to validation tab
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelector('[data-sec="s-validierung"]').classList.add('active');
+  document.getElementById('s-validierung').classList.add('active');
+  showToast(`${persons.length} Person(en) eingelesen — bitte validieren`);
+}
+
+function showParseError(msg) {
+  const el = document.getElementById('parse-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+// ===================== VALIDATION UI =====================
+
+// Field labels for display
+const VAL_LABELS = {
+  name:'Name', vorname:'Vorname', geburtsname:'Geburtsname', gebdat:'Geburtsdatum',
+  geburtsort:'Geburtsort', mitglnr:'Mitglieds-Nr.', feuerwehr:'Feuerwehr',
+  fuehrerschein:'Führerschein', dienstgrad:'Dienstgrad',
+};
+
+const BEFOERD_LABELS = {
+  fa:'FA – Feuerwehranwärter/in', fm:'FM – Feuerwehrmann/frau', ofm:'OFM – Oberfeuerwehrmann/frau',
+  hfm:'HFM – Hauptfeuerwehrmann/frau', lm:'LM – Löschmeister/in', olm:'OLM – Oberlöschmeister/in',
+  hlm:'HLM – Hauptlöschmeister/in', bm:'BM – Brandmeister/in', obm:'OBM – Oberbrandmeister/in', hbm:'HBM – Hauptbrandmeister/in',
+};
+const FUNK_LABELS = { grufue:'Gruppenführer/in', zugfue:'Zugführer/in', stv_kdt:'Stv. Kommandant/in', kdt:'Kommandant/in' };
+
+function buildValidationUI(persons) {
+  document.getElementById('val-empty-state').style.display = 'none';
+  document.getElementById('val-content').style.display = 'block';
+
+  const sel = document.getElementById('val-person-sel');
+  sel.innerHTML = persons.map((p,i) =>
+    `<option value="${i}">${[p.dienstgrad,p.name,p.vorname].filter(Boolean).join(' ')||'Person '+(i+1)}</option>`
+  ).join('');
+  loadValidation();
+}
+
+function loadValidation() {
+  const idx = parseInt(document.getElementById('val-person-sel').value) || 0;
+  const p = _valData[idx];
+  if (!p) return;
+
+  // Find existing person in DB to compare
+  const existing = DB.persons.find(x => x.id === p.id) ||
+                   DB.persons.find(x => x.name === p.name && x.vorname === p.vorname) || null;
+
+  const container = document.getElementById('val-sections');
+  container.innerHTML = '';
+
+  // Helper: build a validation row
+  function valRow(id, label, newVal, oldVal) {
+    const changed = String(newVal||'') !== String(oldVal||'');
+    const rowId = 'vr-' + id.replace(/[^a-z0-9]/gi,'_');
+    return `<tr class="val-row ${changed?'val-changed':''}" id="${rowId}" data-accepted="${!changed}">
+      <td class="val-field">${label}</td>
+      <td class="val-new"><input class="val-input" type="text" value="${escHtml(newVal||'')}" data-orig="${escHtml(newVal||'')}"></td>
+      <td class="val-old">${escHtml(oldVal||'—')}</td>
+      <td class="val-actions">
+        ${changed ? `
+          <button class="val-btn val-accept" title="Übernehmen" onclick="valAccept('${rowId}')">✓</button>
+          <button class="val-btn val-reject" title="Ablehnen / Original behalten" onclick="valReject('${rowId}','${escHtml(oldVal||'')}')">✗</button>
+        ` : `<span style="color:var(--text-3);font-size:11px">gleich</span>`}
+      </td>
+    </tr>`;
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function section(title, rowsHtml) {
+    if (!rowsHtml.trim()) return '';
+    return `<div class="card" style="margin-bottom:.75rem">
+      <div class="card-title">${title}</div>
+      <table class="val-table">
+        <thead><tr><th style="width:180px">Feld</th><th>Eingelesen (Claude)</th><th>Gespeichert (aktuell)</th><th style="width:80px">Aktion</th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>`;
+  }
+
+  // Personalien
+  let rows = Object.entries(VAL_LABELS).map(([k,label]) => valRow('pers_'+k, label, p[k], existing?.[k])).join('');
+  container.innerHTML += section('Personalien', rows);
+
+  // Beförderungen
+  if (p.befoerd) {
+    rows = Object.entries(BEFOERD_LABELS).map(([k,label]) =>
+      valRow('bf_'+k, label, p.befoerd?.[k], existing?.befoerd?.[k])).join('');
+    container.innerHTML += section('Beförderungen', rows);
+  }
+
+  // Funktionen (innere)
+  if (p.funk) {
+    rows = Object.entries(FUNK_LABELS).map(([k,label]) =>
+      valRow('fnk_'+k, label, p.funk?.[k], existing?.funk?.[k])).join('');
+    container.innerHTML += section('Funktionen (innere)', rows);
+  }
+
+  // Auszeichnungen
+  if (p.auszeichn) {
+    const azLabels = {az_25j:'25-j. Dienstzeit',az_40j:'40-j. Dienstzeit',az_steck:'Steckkreuz',az_lfv_silber:'LFV Silber',az_lfv_gold:'LFV Gold',az_lfv_med:'LFV Medaille',az_jfbay_silber:'JF Bayern Silber',az_jfbay_gold:'JF Bayern Gold',az_dfv_silber:'DFV Silber',az_dfv_gold:'DFV Gold',az_dfv_med:'DFV Medaille',az_djf_silber:'DJF Silber',az_djf_gold:'DJF Gold'};
+    rows = Object.entries(azLabels).map(([k,label]) =>
+      valRow('az_'+k, label, p.auszeichn?.[k], existing?.auszeichn?.[k])).filter(r=>r).join('');
+    container.innerHTML += section('Auszeichnungen', rows);
+  }
+
+  // Leistungsabzeichen Wasser
+  if (p.lpWasser?.length) {
+    rows = p.lpWasser.filter(r=>r.datum).map((r,i) => {
+      const old = existing?.lpWasser?.find(x=>x.stufe===r.stufe)||{};
+      return valRow(`lp_${r.stufe}_datum`, `Stufe ${r.stufe} — Datum`, r.datum, old.datum) +
+             valRow(`lp_${r.stufe}_fw`, `Stufe ${r.stufe} — Feuerwehr`, r.fw, old.fw);
+    }).join('');
+    container.innerHTML += section('Leistungsabzeichen Wasser', rows);
+  }
+
+  // THL
+  if (p.thl?.length) {
+    rows = p.thl.filter(r=>r.datum).map((r,i) => {
+      const old = existing?.thl?.find(x=>x.stufe===r.stufe)||{};
+      return valRow(`thl_${r.stufe}_datum`, `${r.stufe} — Datum`, r.datum, old.datum) +
+             valRow(`thl_${r.stufe}_fw`, `${r.stufe} — Feuerwehr`, r.fw, old.fw);
+    }).join('');
+    container.innerHTML += section('THL', rows);
+  }
+
+  // Ausbildung Standort
+  if (p.ausbStandort?.length) {
+    rows = p.ausbStandort.map((r,i) => {
+      const old = existing?.ausbStandort?.[i]||{};
+      return valRow(`as_${i}_art`, `Eintrag ${i+1} — Bezeichnung`, r.art, old.art) +
+             valRow(`as_${i}_datum`, `Eintrag ${i+1} — Datum`, r.datum, old.datum) +
+             valRow(`as_${i}_ort`, `Eintrag ${i+1} — Ort`, r.ort, old.ort) +
+             valRow(`as_${i}_fds`, `Eintrag ${i+1} — Führungsdienstgrad`, r.fds, old.fds);
+    }).join('');
+    container.innerHTML += section('Ausbildung Standort / FwDV 2', rows);
+  }
+
+  // Ausbildung LFS
+  if (p.ausbLfs?.length) {
+    rows = p.ausbLfs.map((r,i) => {
+      const old = existing?.ausbLfs?.[i]||{};
+      return valRow(`lfs_${i}_art`, `Eintrag ${i+1} — Lehrgang`, r.art, old.art) +
+             valRow(`lfs_${i}_von`, `Eintrag ${i+1} — von`, r.von, old.von) +
+             valRow(`lfs_${i}_bis`, `Eintrag ${i+1} — bis`, r.bis, old.bis) +
+             valRow(`lfs_${i}_schule`, `Eintrag ${i+1} — Schule`, r.schule, old.schule);
+    }).join('');
+    container.innerHTML += section('Ausbildung Landesfeuerwehrschulen', rows);
+  }
+
+  // Standortschulung
+  if (p.standortschulung?.length) {
+    rows = p.standortschulung.map((r,i) => {
+      const old = existing?.standortschulung?.[i]||{};
+      return valRow(`ss_${i}_art`, `Eintrag ${i+1} — Art`, r.art, old.art) +
+             valRow(`ss_${i}_datum`, `Eintrag ${i+1} — Datum`, r.datum, old.datum) +
+             valRow(`ss_${i}_ort`, `Eintrag ${i+1} — Ort`, r.ort, old.ort);
+    }).join('');
+    container.innerHTML += section('Standortschulung', rows);
+  }
+
+  // G26
+  if (p.g26?.length) {
+    rows = p.g26.map((r,i) => {
+      const old = existing?.g26?.[i]||{};
+      return valRow(`g26_${i}_art`, `Untersuchung ${i+1} — Art`, r.art, old.art) +
+             valRow(`g26_${i}_datum`, `Untersuchung ${i+1} — Datum`, r.datum, old.datum) +
+             valRow(`g26_${i}_next`, `Untersuchung ${i+1} — Nächste`, r.naechste, old.naechste);
+    }).join('');
+    container.innerHTML += section('G26 Untersuchungen', rows);
+  }
+
+  // Update progress
+  updateValProgress();
+}
+
+function updateValProgress() {
+  const rows = document.querySelectorAll('#val-sections .val-row.val-changed');
+  const accepted = [...rows].filter(r => r.dataset.accepted === 'true').length;
+  document.getElementById('val-progress-wrap').textContent =
+    rows.length > 0 ? `${accepted} / ${rows.length} geänderte Felder bestätigt` : 'Keine Abweichungen gefunden';
+}
+
+function valAccept(rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.dataset.accepted = 'true';
+  row.classList.remove('val-changed');
+  row.classList.add('val-done');
+  updateValProgress();
+}
+
+function valReject(rowId, originalVal) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const inp = row.querySelector('.val-input');
+  if (inp) inp.value = originalVal;
+  row.dataset.accepted = 'true';
+  row.classList.remove('val-changed');
+  row.classList.add('val-done');
+  updateValProgress();
+}
+
+function valAcceptAll() {
+  document.querySelectorAll('#val-sections .val-row.val-changed').forEach(row => {
+    row.dataset.accepted = 'true';
+    row.classList.remove('val-changed');
+    row.classList.add('val-done');
+  });
+  updateValProgress();
+}
+
+function valRejectAll() {
+  document.querySelectorAll('#val-sections .val-row.val-changed').forEach(row => {
+    const inp = row.querySelector('.val-input');
+    const orig = inp?.dataset.orig || '';
+    if (inp) inp.value = orig;
+    row.dataset.accepted = 'true';
+    row.classList.remove('val-changed');
+    row.classList.add('val-done');
+  });
+  updateValProgress();
+}
+
+function commitValidation() {
+  const idx = parseInt(document.getElementById('val-person-sel').value) || 0;
+  const p = JSON.parse(JSON.stringify(_valData[idx])); // deep copy
+
+  // Read back all edited values from val-input fields
+  // We'll apply them by rebuilding the relevant fields from the table
+  document.querySelectorAll('#val-sections .val-row').forEach(row => {
+    const inp = row.querySelector('.val-input');
+    if (!inp) return;
+    const val = inp.value;
+    const rowId = row.id.replace('vr-','');
+
+    // Parse rowId back to path
+    if (rowId.startsWith('pers_')) {
+      const k = rowId.replace('pers_','');
+      p[k] = val;
+    } else if (rowId.startsWith('bf_')) {
+      const k = rowId.replace('bf_','');
+      if (!p.befoerd) p.befoerd = {};
+      p.befoerd[k] = val;
+    } else if (rowId.startsWith('fnk_')) {
+      const k = rowId.replace('fnk_','');
+      if (!p.funk) p.funk = {};
+      p.funk[k] = val;
+    } else if (rowId.startsWith('az_')) {
+      const k = rowId.replace('az_az_','az_'); // fix double az_ prefix
+      if (!p.auszeichn) p.auszeichn = {};
+      p.auszeichn[k.replace('az_','')] = val;
+    } else if (rowId.startsWith('lp_')) {
+      const parts = rowId.split('_'); // lp_stufe_field
+      const stufe = parts[1];
+      const field = parts[2];
+      const entry = p.lpWasser?.find(r=>r.stufe===stufe);
+      if (entry) entry[field] = val;
+    } else if (rowId.startsWith('thl_')) {
+      const underscored = rowId.replace('thl_','');
+      // stufe can be "THL 1" -> encoded as THL_1
+      const lastUnderscore = underscored.lastIndexOf('_');
+      const stufe = underscored.slice(0, lastUnderscore).replace(/_/g,' ');
+      const field = underscored.slice(lastUnderscore+1);
+      const entry = p.thl?.find(r=>r.stufe===stufe);
+      if (entry) entry[field] = val;
+    } else if (rowId.startsWith('as_')) {
+      const parts = rowId.split('_');
+      const i = parseInt(parts[1]), field = parts[2];
+      if (p.ausbStandort?.[i]) p.ausbStandort[i][field] = val;
+    } else if (rowId.startsWith('lfs_')) {
+      const parts = rowId.split('_');
+      const i = parseInt(parts[1]), field = parts[2];
+      if (p.ausbLfs?.[i]) p.ausbLfs[i][field] = val;
+    } else if (rowId.startsWith('ss_')) {
+      const parts = rowId.split('_');
+      const i = parseInt(parts[1]), field = parts[2];
+      if (p.standortschulung?.[i]) p.standortschulung[i][field] = val;
+    } else if (rowId.startsWith('g26_')) {
+      const parts = rowId.split('_');
+      const i = parseInt(parts[1]), field = parts[2];
+      if (p.g26?.[i]) {
+        if (field==='next') p.g26[i].naechste = val;
+        else p.g26[i][field] = val;
+      }
+    }
+  });
+
+  // Merge into DB
+  const existingIdx = DB.persons.findIndex(x => x.id === p.id);
+  if (existingIdx >= 0) {
+    // Deep merge: keep existing fields not in import
+    DB.persons[existingIdx] = Object.assign({}, DB.persons[existingIdx], p);
+  } else {
+    // Check by name
+    const nameIdx = DB.persons.findIndex(x => x.name===p.name && x.vorname===p.vorname);
+    if (nameIdx >= 0) {
+      p.id = DB.persons[nameIdx].id; // keep existing id
+      DB.persons[nameIdx] = Object.assign({}, DB.persons[nameIdx], p);
+    } else {
+      DB.persons.push(p);
+    }
+  }
+
+  saveDB();
+  refreshPersonSel();
+  // Mark this person as committed in _valData
+  _valData.splice(idx, 1);
+
+  if (_valData.length > 0) {
+    buildValidationUI(_valData);
+    showToast('Gespeichert ✓ — nächste Person wird geladen');
+  } else {
+    document.getElementById('val-content').style.display = 'none';
+    document.getElementById('val-empty-state').style.display = 'block';
+    document.getElementById('val-empty-state').querySelector('.empty').innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Alle Personen validiert und gespeichert ✓';
+    showToast('Alle Personen gespeichert ✓');
+  }
+}
+
+
 applyDateInputs();
 refreshPersonSel();
 
